@@ -25,3 +25,7 @@ env/
 .idea/
 .DS_Store
 *.swp
+
+# 运行期沙箱 Git
+.sandbox_git/
+
