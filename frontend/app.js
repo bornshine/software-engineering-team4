@@ -25,8 +25,6 @@ const ROLE_ORDER = {
 
 let appState = null;
 let selectedTaskId = null;
-let hoveredTaskId = null;
-let hoveredEdgeKey = null;
 let edgeMode = "all"; // "all" | "focus" | "critical"
 let simTimer = null;
 let verdictTarget = null; // { kind: "task", taskId } | { kind: "signal", signalId }
@@ -283,16 +281,6 @@ function renderSwimlaneGraph() {
       renderSwimlaneGraph();
       renderSelectedTask();
     });
-    el.addEventListener("mouseenter", () => {
-      hoveredTaskId = tid;
-      requestAnimationFrame(drawDagEdges);
-    });
-    el.addEventListener("mouseleave", () => {
-      if (hoveredTaskId === tid) {
-        hoveredTaskId = null;
-        requestAnimationFrame(drawDagEdges);
-      }
-    });
   });
 
   requestAnimationFrame(drawDagEdges);
@@ -439,17 +427,17 @@ function drawDagEdges() {
     });
   }
 
-  const focusId = hoveredTaskId || selectedTaskId;
+  const focusId = selectedTaskId;
   let paths = `
     <defs>
       <marker id="arrow-normal" markerWidth="6" markerHeight="6" refX="5.5" refY="3" orient="auto">
-        <polygon points="0 0, 6 3, 0 6" fill="#64748b" />
+        <polygon points="0 0, 6 3, 0 6" fill="#94a3b8" />
       </marker>
       <marker id="arrow-gold" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
         <polygon points="0 0, 7 3.5, 0 7" fill="#f59e0b" />
       </marker>
       <marker id="arrow-cyan" markerWidth="6" markerHeight="6" refX="5.5" refY="3" orient="auto">
-        <polygon points="0 0, 6 3, 0 6" fill="#06b6d4" />
+        <polygon points="0 0, 6 3, 0 6" fill="#22d3ee" />
       </marker>
       <marker id="arrow-focus" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
         <polygon points="0 0, 7 3.5, 0 7" fill="#38bdf8" />
@@ -458,14 +446,13 @@ function drawDagEdges() {
   `;
 
   const ordered = [...edges].sort((a, b) => {
-    const score = (e) => (e.key === hoveredEdgeKey ? 4 : e.isCriticalEdge ? 3 : e.isJointEdge ? 2 : 1);
+    const score = (e) => (e.isCriticalEdge ? 3 : e.isJointEdge ? 2 : 1);
     return score(a) - score(b);
   });
 
   ordered.forEach((e, idx) => {
     const isConnectedToFocus = focusId && (e.fromId === focusId || e.toId === focusId);
-    const isEdgeHover = hoveredEdgeKey === e.key;
-    if (edgeMode === "critical" && !e.isCriticalEdge && !e.isJointEdge && !isConnectedToFocus && !isEdgeHover) {
+    if (edgeMode === "critical" && !e.isCriticalEdge && !e.isJointEdge && !isConnectedToFocus) {
       return;
     }
 
@@ -526,58 +513,55 @@ function drawDagEdges() {
       }
     }
 
-    let stroke = "#64748b";
-    let width = 1.4;
-    let opacity = 0.5;
+    let stroke = "#94a3b8";
+    let width = 1.65;
+    let opacity = 0.78;
     let marker = "url(#arrow-normal)";
     let dash = "";
 
     if (e.isJointEdge) {
-      stroke = "#06b6d4";
-      width = 1.9;
-      opacity = 0.85;
+      stroke = "#22d3ee";
+      width = 2.1;
+      opacity = 0.92;
       marker = "url(#arrow-cyan)";
       dash = `stroke-dasharray="6,3"`;
     }
     if (e.isCriticalEdge) {
       stroke = "#f59e0b";
-      width = 2.8;
-      opacity = 0.96;
+      width = 2.9;
+      opacity = 1.0;
       marker = "url(#arrow-gold)";
       dash = "";
     }
 
-    if (hoveredEdgeKey) {
-      if (isEdgeHover) {
+    if (edgeMode === "focus" && focusId) {
+      if (isConnectedToFocus) {
         opacity = 1.0;
-        width = 3.2;
+        width = Math.max(width, 2.6);
         if (!e.isCriticalEdge && !e.isJointEdge) {
           stroke = "#38bdf8";
           marker = "url(#arrow-focus)";
         }
       } else {
-        opacity = e.isCriticalEdge ? 0.25 : 0.10;
+        opacity = e.isCriticalEdge ? 0.35 : 0.18;
       }
-    } else if (focusId) {
-      if (isConnectedToFocus) {
-        opacity = 1.0;
-        width = Math.max(width, 2.5);
-        if (!e.isCriticalEdge && !e.isJointEdge) {
-          stroke = "#38bdf8";
-          marker = "url(#arrow-focus)";
-        }
-      } else if (edgeMode === "focus" || hoveredTaskId) {
-        opacity = e.isCriticalEdge ? 0.30 : 0.10;
+    } else if (isConnectedToFocus) {
+      // 全部连线模式下：仅加强选中节点关联边，绝不暗化其它路径
+      opacity = 1.0;
+      width = Math.max(width, 2.3);
+      if (!e.isCriticalEdge && !e.isJointEdge) {
+        stroke = "#38bdf8";
+        marker = "url(#arrow-focus)";
       }
     }
 
     const kindText = e.isCriticalEdge ? "关键路径" : e.isJointEdge ? "联合合流" : "前置依赖";
     paths += `
       <g class="dag-edge-group" data-edge-key="${esc(e.key)}" data-to-id="${esc(e.toId)}">
-        <path d="${d}" fill="none" stroke="transparent" stroke-width="11" style="pointer-events:stroke;cursor:pointer;">
+        <path d="${d}" fill="none" stroke="transparent" stroke-width="7" style="pointer-events:stroke;cursor:pointer;">
           <title>${esc(e.fromId)} → ${esc(e.toId)} (${kindText})</title>
         </path>
-        <path d="${d}" fill="none" stroke="${stroke}" stroke-width="${width}" ${dash} marker-end="${marker}" opacity="${opacity}" style="pointer-events:none;" />
+        <path class="edge-visible" d="${d}" fill="none" stroke="${stroke}" stroke-width="${width}" ${dash} marker-end="${marker}" opacity="${opacity}" style="pointer-events:none;" />
       </g>
     `;
   });
@@ -585,18 +569,7 @@ function drawDagEdges() {
   svg.innerHTML = paths;
 
   svg.querySelectorAll(".dag-edge-group").forEach((g) => {
-    const key = g.getAttribute("data-edge-key");
     const toId = g.getAttribute("data-to-id");
-    g.addEventListener("mouseenter", () => {
-      hoveredEdgeKey = key;
-      requestAnimationFrame(drawDagEdges);
-    });
-    g.addEventListener("mouseleave", () => {
-      if (hoveredEdgeKey === key) {
-        hoveredEdgeKey = null;
-        requestAnimationFrame(drawDagEdges);
-      }
-    });
     g.addEventListener("click", () => {
       selectedTaskId = toId;
       document.querySelector('[data-tab="tab-task"]').click();

@@ -411,6 +411,16 @@ select:focus, input:focus, textarea:focus {
   z-index: 3;
 }
 
+.dag-edge-group .edge-visible {
+  transition: stroke-width 0.12s ease, opacity 0.12s ease, filter 0.12s ease;
+}
+
+.dag-edge-group:hover .edge-visible {
+  opacity: 1 !important;
+  stroke-width: 3.2px !important;
+  filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.75));
+}
+
 .swimlane-grid {
   position: relative;
   display: grid;
