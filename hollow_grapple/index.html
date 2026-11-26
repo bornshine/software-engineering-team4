@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>丝烬幽窟 SILKHOLLOW — 渊丝钩锁银河城</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="game-shell">
+    <canvas id="game-canvas" width="1280" height="720"></canvas>
+
+    <!-- 顶部快捷栏（游戏进行中轻量可见） -->
+    <div id="top-actions" class="hidden">
+      <button id="btn-map" class="ghost-btn" title="大地图 (Tab)">地图 [Tab]</button>
+      <button id="btn-help" class="ghost-btn" title="操作指南 (H)">键位 [H]</button>
+      <button id="btn-mute" class="ghost-btn" title="静音切换 (M)">音效: 开</button>
+      <button id="btn-pause" class="ghost-btn" title="暂停 (Esc)">暂停 [Esc]</button>
+    </div>
+
+    <!-- 底部短暂交互 / 碑文浮层 -->
+    <div id="lore-banner" class="hidden">
+      <div class="lore-ornament">❖</div>
+      <div id="lore-title"></div>
+      <div id="lore-text"></div>
+    </div>
+
+    <!-- 区域入场大标题 -->
+    <div id="zone-banner" class="hidden">
+      <div class="zone-line"></div>
+      <div id="zone-name">沉寂祭坛</div>
+      <div id="zone-sub">SILENT SANCTUARY</div>
+      <div class="zone-line"></div>
+    </div>
+
+    <!-- 主标题遮罩 -->
+    <div id="title-screen" class="overlay-screen">
+      <div class="title-card">
+        <div class="crest-svg">
+          <svg viewBox="0 0 120 70" width="110" height="64">
+            <path d="M60 6 C46 18, 42 42, 60 62 C78 42, 74 18, 60 6 Z" fill="none" stroke="#e2f1ff" stroke-width="2.4"/>
+            <path d="M44 26 C26 14, 14 26, 26 42 C34 52, 48 48, 55 42" fill="none" stroke="#5eead4" stroke-width="1.8" opacity="0.85"/>
+            <path d="M76 26 C94 14, 106 26, 94 42 C86 52, 72 48, 65 42" fill="none" stroke="#5eead4" stroke-width="1.8" opacity="0.85"/>
+            <circle cx="53" cy="34" r="3.4" fill="#070a14"/>
+            <circle cx="67" cy="34" r="3.4" fill="#070a14"/>
+            <circle cx="60" cy="14" r="2.2" fill="#5eead4"/>
+          </svg>
+        </div>
+        <h1 class="game-title">丝烬幽窟</h1>
+        <p class="game-subtitle">SILKHOLLOW : THREAD OF ABYSS</p>
+        <p class="game-tagline">2D 渊丝钩锁 × 类空洞骑士横版动作银河城 · 可玩垂直切片</p>
+
+        <div class="title-buttons">
+          <button id="btn-start" class="primary-btn">踏入古窟</button>
+          <button id="btn-title-controls" class="secondary-btn">操控与钩锁指南</button>
+        </div>
+
+        <div class="quick-hints">
+          <span><b>A / D</b> 移动</span>
+          <span><b>Space</b> 跳跃 / 蹬墙跳</span>
+          <span><b>左键 / J</b> 四向骨钉与下劈弹反</span>
+          <span><b>右键 / E / K</b> 渊丝钩锁（短按拉拽 · 长按摆荡）</span>
+          <span><b>Shift / L</b> 幽影冲刺</span>
+          <span><b>F / Q</b> 长按凝聚回血 · 短按灵魂弹</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 暂停 / 键位说明弹窗 -->
+    <div id="pause-screen" class="overlay-screen hidden">
+      <div class="modal-card">
+        <h2>古窟暂歇</h2>
+        <div class="controls-grid">
+          <div class="ctrl-section">
+            <h3>基础身法与骨钉</h3>
+            <ul>
+              <li><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> 移动与摆荡发力</li>
+              <li><kbd>Space</kbd> / <kbd>Z</kbd> 跳跃、可变跳、贴墙蹬跳</li>
+              <li><kbd>左键</kbd> / <kbd>J</kbd> / <kbd>X</kbd> 骨钉挥砍</li>
+              <li><kbd>W</kbd>/<kbd>S</kbd> + 挥砍：上劈 / <b>空中下劈弹反 (Pogo)</b></li>
+              <li><kbd>Shift</kbd> / <kbd>L</kbd> / <kbd>C</kbd> 幽影冲刺（空中可用一次）</li>
+              <li><kbd>W</kbd> / <kbd>↑</kbd> 靠近长椅歇息存档并回血</li>
+            </ul>
+          </div>
+          <div class="ctrl-section">
+            <h3>渊丝钩锁与灵魂</h3>
+            <ul>
+              <li><kbd>右键</kbd> / <kbd>E</kbd> / <kbd>K</kbd> <b>短按</b>：高速拉拽弹射</li>
+              <li><kbd>右键</kbd> / <kbd>E</kbd> / <kbd>K</kbd> <b>长按丝环</b>：物理钟摆摆荡</li>
+              <li>摆荡中按 <kbd>Space</kbd>：<b>弹弓爆发抛射</b></li>
+              <li><b>钩拉敌人</b>：高速突进避伤 + 强化「钩刃斩」</li>
+              <li><b>钩拉共鸣铃</b>：远程开启捷径或王座闸门</li>
+              <li><kbd>F</kbd> / <kbd>Q</kbd>：<b>长按凝聚回血</b> / <b>短按灵魂脉冲弹</b></li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="btn-resume" class="primary-btn">继续探索</button>
+          <button id="btn-respawn-bench" class="secondary-btn">返回最近长椅</button>
+          <button id="btn-restart" class="secondary-btn">重新开始</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 全景大地图弹窗 -->
+    <div id="map-screen" class="overlay-screen hidden">
+      <div class="modal-card map-card">
+        <div class="map-header">
+          <h2>幽丝古窟 · 探索舆图</h2>
+          <button id="btn-close-map" class="ghost-btn">关闭 [Tab]</button>
+        </div>
+        <canvas id="fullmap-canvas" width="900" height="460"></canvas>
+        <div class="map-legend">
+          <span><i class="dot dot-player"></i> 当前位置</span>
+          <span><i class="dot dot-bench"></i> 存档长椅</span>
+          <span><i class="dot dot-bell"></i> 共鸣丝铃</span>
+          <span><i class="dot dot-relic"></i> 遗物 / 碎片</span>
+          <span><i class="dot dot-boss"></i> 织渊王座</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 胜利通关面板 -->
+    <div id="victory-screen" class="overlay-screen hidden">
+      <div class="modal-card victory-card">
+        <div class="crest-glow">✦ 织渊已寂 ✦</div>
+        <h2>残丝监守者 · 维洛斯 已被平息</h2>
+        <p class="victory-desc">苍白幽丝再度于古窟深处低鸣，沉寂已久的圣所迎来了微光。</p>
+        <div id="victory-stats" class="stats-grid"></div>
+        <div class="modal-actions">
+          <button id="btn-continue-explore" class="primary-btn">继续自由探索</button>
+          <button id="btn-victory-restart" class="secondary-btn">开启新周目挑战</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 按依赖顺序加载核心模块（无 ES Module CORS 限制，双击 index.html 即可畅玩） -->
+  <script src="js/constants.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/level.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/enemies.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
