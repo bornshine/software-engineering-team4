@@ -20,6 +20,7 @@
 | 文档 | 版本 / 状态 | 说明 |
 | :--- | :--- | :--- |
 | [总体架构设计-九阶段双编排器全链路架构-v4.3.md](docs/总体架构设计-九阶段双编排器全链路架构-v4.3.md) | **v4.3 架构定稿蓝图（规划待落地）** | 汇总“默认真 LLM API”决策、D1~D7 组内方案融合、P0×8 / P1×18 评审修正、AG2 讨论内核、`PHASE_1~9` / `DEV_STAGE_1~5` 双轨与 M1~M4 落地路线图 |
+| [设计评审意见-总体架构设计-v4.3.md](docs/设计评审意见-总体架构设计-v4.3.md) | v4.3 评审意见清单（待消缺） | 对照 v4.2 与 v3.0 契约审出的 P0×7 / P1×18 / P2×8 修改建议（进入 M1 编码前参考） |
 | [详细设计方案-九阶段双编排器全链路架构-v4.0.md](docs/详细设计方案-九阶段双编排器全链路架构-v4.0.md) | v4.2 详细设计归档（原样保留备查） | 经两轮架构自审的 v4.2 全链路细粒度规约草案 |
 | [设计评审意见-九阶段双编排器全链路架构-v4.2.md](docs/设计评审意见-九阶段双编排器全链路架构-v4.2.md) | v4.2 评审意见档案 | 对照 v3.0 代码契约逐节审出的 P0×8 / P1×18 / P2×10 评审清单 |
 | [需求说明-项目管理任务可视化与多Agent流改造.md](docs/需求说明-项目管理任务可视化与多Agent流改造.md) | v3.0 需求定稿（已实现） | 下游 2D/2.5D 动态编排与可视化平台的 7 条验收判据与契约基准 |
@@ -71,6 +72,20 @@ python -m unittest discover -s tests -v
 
 ---
 
+## 2D 银河城可玩垂直切片示例：《丝烬幽窟》（`hollow_grapple/`）
+
+仓库额外附带一套 2D 横版动作银河城可玩垂直切片案例 **《丝烬幽窟》（SILKHOLLOW : THREAD OF ABYSS）**（对应平台 2D 横版动作 / 钩锁开发域的纯前端实装样例）：
+
+- **设计策划案**：[GDD_游戏策划案.md](hollow_grapple/GDD_游戏策划案.md)（v1.0，涵盖世界观、5 层视差氛围、双模渊丝钩锁与角色手感参数、5 大互联分区、4 类常规敌怪及双阶段 Boss「残丝监守者 · 维洛斯」）。
+- **运行入口**：[hollow_grapple/index.html](hollow_grapple/index.html)（零第三方依赖 HTML5 Canvas 60Hz + Web Audio 程序化音效合成，支持浏览器直接打开或静态 HTTP 服务运行）。
+
+```bash
+# 可选：通过本地静态服务启动试玩
+python -m http.server 8080 --directory hollow_grapple
+```
+
+---
+
 ## 当前仓库目录说明
 
 ```text
@@ -78,8 +93,9 @@ RJGC-agent/
 ├── app.py               # v3.0 Web 服务启动入口 (http://127.0.0.1:8000)
 ├── backend/             # v3.0 核心引擎 (models/rules/cpm/presets/decomposer/planner_memory/listener/git_sandbox/orchestrator/server)
 ├── frontend/            # v3.0 可视化控制面板 (index.html / styles.css / app.js)
+├── hollow_grapple/      # 2D 银河城《丝烬幽窟》GDD 策划案与零依赖纯前端可玩垂直切片 (index.html / styles.css / js/)
 ├── tests/               # v3.0 验收测试 (test_acceptance_7_criteria.py) 与历史演示脚本 (run_demo.sh)
-├── docs/                # 基线设计 PDF、v3.0 需求说明、v4.2 详细设计归档与评审意见、v4.3 总体架构蓝图
+├── docs/                # 基线设计 PDF、v3.0 需求说明、v4.2 详细设计归档与评审意见、v4.3 总体架构蓝图与评审清单
 ├── main.py              # v1.0 历史 CLI 静态分解与对话入口（保留基线）
 ├── src/                 # v1.0 历史基线实现模块
 ├── config/              # v1.0 历史角色卡配置
