@@ -1,9 +1,9 @@
-# 第一层：讨论层（Deliberation Plane）终版工程设计规范（v1.1）
+# 第一层：讨论层（Deliberation Plane）终版工程设计规范（v1.2）
 
 > [!IMPORTANT]
-> 本规范为 **2D / 轻 2.5D 风格化游戏多 Agent 工作流（v5.0 重构版）** 中 **第一层（讨论层）** 的终版工程规约（**v1.1 强化版**，在 v1.0 固定契约基础上补齐了**策划案 5 槽位完整性校验**、**Stage 3 Root 全局风格锁 + 双主干游戏树增量拆解**与**反向复述语义防歪机制**，对编排器接口 100% 向后兼容）。
+> 本规范为 **2D / 轻 2.5D 风格化游戏多 Agent 工作流（v5.0 重构版）** 中 **第一层（讨论层）** 的终版工程规约（**v1.2 节奏与微压测强化版**，在 v1.0/v1.1 基础上明确了**多支柱分轮各自独立抽卡/重抽/融合**、**户型图骨架 + 焦点配额 `ANCHOR/FLOW/UTILITY` + 逐系统填肉双向天平微压测**与**前 5 分钟信息量/张弛心流全局体检**，对编排器接口 100% 向后兼容）。
 >
-> 核心定位：**极薄定界围栏 · 领衔支柱按序抽卡熔炉 · Root 全局风格锁 + 双主干游戏树增量拆解 + Tree Reduce 归并四张纯需求表 · 跨阶段清空上下文 · 彻底取消“圣经”只管 What 不教 How**。
+> 核心定位：**极薄定界围栏 · 多支柱按序抽卡熔炉 · 骨架与逐系统双向微压测 · Root 全局风格锁 + 双主干游戏树增量拆解 + Tree Reduce 归并四张纯需求表 · 跨阶段清空上下文 · 只管 What 不教 How**。
 >
 > 若你是第二层（编排器）开发者，请直接对接冻结接口文档：**[第一层 → 编排器固定输出契约（layer1_to_orchestrator_contract.md）](layer1_to_orchestrator_contract.md)**。
 
@@ -43,8 +43,8 @@ flowchart TD
     S2Pick["Stage 2 Step 3：人类导演必需挑牌（单选1张 或 1主+≤2副上限3张，不满一键 Reroll）"]
     S2Fusion["Stage 2 Step 4：AI 融合兼容性判官 fusion_check.yaml（强制逐对检验，任意一对怪异物理硬退回）"]
     S2Rubric["Stage 2 Step 5：抽牌定型后 Experience Critic 出 12~18 条精准考纲 R01~R18"]
-    S2Forge["Stage 2 Step 6A：Creator 锻造 MASTER_GDD.md（5槽位+体验意图/反例 + 100%考纲映射）"]
-    S2Stress["Stage 2 Step 6B：异构 Experience Critic 玩家单步旅程走查与有限压测（≤2轮，剥离 backlog_notes）"]
+    S2Forge["Stage 2 Step 6.1~6.2：先拼户型图骨架(标 ANCHOR/FLOW/UTILITY 焦点配额)↔红队反驳，再逐系统填肉↔双向微压测"]
+    S2Stress["Stage 2 Step 6.3：全局心流与信息量体检（前5分钟≤3新概念/张弛节奏/跨系统接缝/100%考纲映射，剥离 backlog 与 GOLDEN_SPARK）"]
     S2Arbiter["Stage 2 Arbiter：2轮仍僵持时一次拍板写不可变 ADR（平时休眠 $0）"]
 
     S3Root["Stage 3.1 Root 根底座：四工种一次性锁死全局风格宪法 + 共享实体词典（Experience Critic 1次四方对齐）"]
@@ -212,42 +212,53 @@ hard_box:
 
 ---
 
-### Stage 2：领衔支柱按序抽卡熔炉 + 精准考纲 + 有限压测（全新干净上下文）
+### Stage 2：多支柱按序抽卡熔炉 + 精准考纲 + 骨架与逐系统双向微压测（全新干净上下文）
 
-**定位**：全层**唯一核心创意主战场**。按 `lead_pillars` 数组顺序执行 **1~2 轮**：
-* 第 1 领衔支柱定稿后自动锁定，作为第 2 领衔支柱的不可违背上位输入；
+**定位**：全层**唯一核心创意主战场**。按 `lead_pillars` 数组顺序，**为每一种领衔支柱独立执行 1 轮抽卡、重抽与融合（1~2 轮）**：
+* **每种领衔支柱拥有独立卡池**：例如 `lead_pillars = ["narrative", "gameplay"]` 时，第 1 轮独立抽**故事卡池**（可单独 `Reroll`、挑 `1 主 + ≤2 副` 故事卡融合 → 锁定**【故事融合定稿】**）；第 2 轮带着【故事融合定稿】作为铁上位输入，独立抽**玩法卡池**（可单独 `Reroll`、挑 `1 主 + ≤2 副` 玩法卡融合 → 锁定**【玩法融合定稿】**）。换成 `玩法 → 美术` 或 `故事 → 美术` 完全同构；
 * **故事领衔铁律**：当 `narrative` 排在 `lead_pillars[0]` 时，抽卡与定稿产出必须是**“玩家可操作、有明确代价与反馈的可交互矛盾局”**，严禁产出只能被动翻页的线性纯小说大纲。
 
 #### 6 步标准化执行流
 
-1. **Step 1 · 随机深水视角抽卡**
-   * 代码从动态深水视角池随机抽取 **4~5 个结构化深水视角** + **1 个高反差野生变异视角**，分发给跨厂商多模型并行生成 **5~6 张极简名片**；
+1. **Step 1 · 当前支柱随机深水视角抽卡**
+   * 代码针对当前领衔支柱，从动态深水视角池随机抽取 **4~5 个结构化深水视角** + **1 个高反差野生变异视角**，分发给跨厂商多模型并行生成 **5~6 张极简名片**；
    * 每张名片严格受 `idea_card.yaml` 锁死（**≤ 220 字/张**，禁写琐碎数值与实现），只亮出最锋利的核心钩子、核心抉择/循环与反差张力。
 2. **Step 2 · 1 次批量单卡可行性安检**
    * `Feasibility Critic` **一次性打包审全 5~6 张卡**（严禁逐卡展开多轮对话），按中小成本风格化红线逐张给出 `GREEN / YELLOW / RED` 分级与一句风险标注；
    * **$0 代码物理销毁所有 `RED` 毒卡**，只将 `GREEN / YELLOW` 牌呈递给人类导演。
 3. **Step 3 · 人类导演挑牌（必需，无全自动模式）**
-   * 人类导演亲自从过检手牌中做出选择：
-     * **单选 1 张主卡**（直通 Step 5）；或
+   * 人类导演亲自从当前支柱过检手牌中做出选择：
+     * **单选 1 张主卡**（直通兼容通过）；或
      * **组合挑牌：`1 主卡 + ≤2 副卡`（硬上限 3 张）**，明确声明副卡只作为**规则变异器（rule_mutator）**或**风味插件（flavor_plugin）**，严禁把 3 个完整主玩法硬揉成缝合怪；
-   * 若手牌全部缺乏灵气，人类一键触发 **`Reroll`** 刷新视角池重抽。
+   * 若本支柱手牌全部缺乏灵气，人类一键触发 **`Reroll`** 刷新当前支柱视角池重抽。
 4. **Step 4 · AI 融合兼容性判官（`fusion_check.yaml` · 多卡必过）**
-   * 只要人类选中 ≥2 张卡，必须先由 `Feasibility Critic`（判官视角）执行**强制逐对检验（Pairwise Check）**：
+   * 只要当前支柱选中 ≥2 张卡，必须先由 `Feasibility Critic`（判官视角）执行**强制逐对检验（Pairwise Check）**：
      * `1 主 + 1 副` 检 1 对；`1 主 + 2 副` **强制检全 3 对**（主↔副1、主↔副2、副1↔副2）；
    * 只要**任意一对**出现核心节奏冲突、情绪气味割裂或体量乘法爆炸，代码立即判 **`INCOMPATIBLE` 并物理硬退回 Step 3 重挑**——**主创绝不启动，绝不允许 AI 硬着头皮强缝！**
+   * 全部领衔支柱依次完成 Step 1~4 并分别锁定各自支柱融合定稿后，统一进入 Step 5。
 5. **Step 5 · 抽牌定型后才出精准考纲（`Experience Critic`）**
-   * 创意形态完全落袋后，`Experience Critic` 针对 `stage1_boundary.yaml` + 选中融合卡，查询外部静态词卡库并现场动态推导 **12~18 条精准考纲（`R01~R18`）**，直指本作真实体验雷区与必答设计题。
-6. **Step 6 · 锻造《核心总策划案》与完整性强检 + 有限压测（≤ 2 轮，无强迫 DISPUTE 吵架）**
-   * `Creator` 在围栏 + 融合卡 + 考纲 `R01~R18` 约束下锻造 **`MASTER_GDD.md`** 与 **`gdd_index.yaml`**（只写 What 与规则闭环；**绝不越权替美术选具体色值或替音频调分贝**，保持轻策划案减负）：
-     * **单模块 5 槽位 + 体验意图硬约束**：`gdd_index.yaml` 中每个模块 `GDD-Mxx` 必须填满 `entry_trigger`（入口）、`core_rules`（核心规则）、`win_exit`（正向出口）、`fail_exit`（失败/异常出口）、`acceptance_oracle`（验收标尺）以及 20~40 字的 **`experience_intent`（体验意图 + 禁止反例，例如“无声礼教凝视压迫感，绝非拔刀追杀或跳吓”）**；
-     * **$0 完整性脚本拦截**：扫描全文禁用 `同上 / 略 / 待定 / TBD / TODO / 以此类推` 等偷懒占位词，并强制校验 `rubric_coverage_map`（`R01~R18 → GDD-Mxx` 覆盖率必须 = **100%**）；
-   * 异构 `Experience Critic` 输出 `review_verdict.yaml` 执行 **玩家单步旅程走查（Player Journey Walkthrough）** 与有限压测（硬上限 **2 轮**）：
-     * 强制按时间轴走查“启动 → 主循环 → 胜负结算 → 失败惩罚 → 中途退出重进”，凡出现断头路即标 `MISSING_BOUNDARY`；
-     * 仅对 **4 类客观硬伤** 开 `BLOCKER`：① 规则/逻辑自相矛盾；② 漏写关键边界或使用未落地空话；③ 违背围栏/`Negative`/考纲必答项或与 `Canon` 吃书；④ 超出中小成本体量红线；
-     * 无客观硬伤必须干脆签发 **`PASS`**（严禁凑数挑刺、严禁无休止 `DISPUTE` 吵架）；
-     * 红队若顺带写了零星发散灵感（`backlog_notes`），**$0 代码将其物理剥离写入旁路 `ideas_backlog.md`**，绝不喂回 `Creator` 污染主线；
-   * 若 2 轮修订后仍僵持，唤醒 **`Arbiter`** 按优先级宪法一次拍板并写入不可变 `ADR`；
-   * 全部领衔支柱定稿后，**冻结 `MASTER_GDD.md` + `gdd_index.yaml` 并彻底清空 Stage 2 上下文**。
+   * 全部领衔支柱创意定型落袋后，`Experience Critic` 针对 `stage1_boundary.yaml` + 各领衔支柱融合定稿，查询外部静态词卡库并现场动态推导 **12~18 条精准考纲（`R01~R18`）**，直指本作真实体验雷区与必答设计题。
+6. **Step 6 · 先「户型图骨架」后「逐系统填肉」+ 焦点配额双向微压测 + 全局心流/信息量体检（绝不写死总字数，按游玩时长与系统个数弹性伸缩）**
+   * **6.1 合并出「户型图骨架」↔ 红队反对辩驳（≤ 2 轮）**：
+     * `Creator` 将各领衔支柱融合定稿拼合成精炼骨架：**多支柱融合说明 + 玩家完整一局流程（开局 → 核心循环 → 胜负/失败/存档重进）+ 双主干结构目录（核心系统清单 + 大/小场景目录树）**；
+     * **强制分配「焦点配额标签（`focus_tier`）」**，防止处处抖机灵毁掉心流：
+       * **`ANCHOR`（高光记忆位 · 全章严格限 1~2 个）**：本作最该出名场面的核心节点，配放神级巧思；
+       * **`FLOW`（心流承重位 · 占主体 60~70%）**：追求丝滑、直觉、低认知负担，严禁瞎抖机灵；
+       * **`UTILITY`（零感基建位）**：存档/设置/基础引导，必须像空气一样隐形，绝对禁止巧思干扰；
+     * 异构 `Experience Critic` 立刻反驳骨架（查多支柱拼合是否两张皮、玩家一局流程有无断头路、焦点配额与体量是否失控），过关冻结骨架（无硬伤干脆 1 轮 `PASS`）。
+   * **6.2 按目录「逐个系统填肉」↔ 双向天平微压测（每小块 ≤ 2 轮）**：
+     * `Creator` 每次只聚焦写 **1 个核心系统**（填满 5 槽位：`entry_trigger / core_rules / win_exit / fail_exit / acceptance_oracle` + 20~40 字 `experience_intent` 体验意图与反例；**绝不越权替美术选具体色值或替音频调分贝**）；
+     * 红队审每小块时按 `focus_tier` 掏**双向天平尺子**（仅限客观硬伤开 `BLOCKER`，无硬伤直接 `PASS`，严禁提功能加法建议，2 轮仍僵持交 `Arbiter` 拍板写 `ADR`）：
+       * 审 **`ANCHOR` 高光位**：除查逻辑边界外，若写得太温吞像教科书，可判 **`FLAT_DESIGN`（白开水硬伤）**，逼主创在**零新增系统、零涨体量**的镣铐下挖出神级微巧思；
+       * 审 **`FLOW` / `UTILITY` 位**：重点防信息过载与操作摩擦，若瞎抖机灵直接判 **`OVER_DESIGNED`（过度设计）** 打回做减法；
+     * **`GOLDEN_SPARK` 旁路通道**：若填肉时偶然撞出**略超体量但极惊艳的大火花**，严禁 AI 私自写进正文，单独摘录为置顶 `GOLDEN_SPARK`（≤100 字，标明体量代价）写入 `memory/ideas_backlog.md`，留待人类终审一键决定是否破格采纳。
+   * **6.3 全案拼合 + `$0` 完整性拦截 + 1 次「全局心流、信息量与接缝体检」**：
+     * `$0` 脚本扫描全文禁现 `同上 / 略 / 待定 / TBD / TODO`，并强制校验 `rubric_coverage_map`（考纲 `R01~R18` 覆盖率必须 = **100%**）；
+     * `Experience Critic` 做 1 次极轻的全局体验体检（不重审各系统内部细节）：
+       1. **开局前 5 分钟信息量红线（Onboarding Load）**：前 5 分钟抛给玩家的新概念/新规则超过 3 个即亮红灯，强制改为阶梯渐进解锁；
+       2. **张弛节奏曲线（Tension & Relief）**：检查高压博弈后是否留出低认知负担的消化/喘息段；
+       3. **巧思总密度上限 + 跨系统数值/节奏接缝复核**（防 `SYS-1` 惩罚过狠把 `SYS-2` 提前打死）；
+     * 全项通过后，**冻结 `MASTER_GDD.md` + `gdd_index.yaml` 并彻底清空 Stage 2 上下文**。
 
 #### Anti-Boundary-Crossing Schemas（Stage 2）
 
@@ -290,20 +301,25 @@ pairwise_checks:                        # 代码强制校验组合数 == C(N, 2)
 overall_verdict: "COMPATIBLE"           # 代码断言：任意一条 pairwise != COMPATIBLE 则强制 INCOMPATIBLE 并物理打回重挑
 ```
 
-**3. `review_verdict.yaml`（有限客观硬伤压测，`additionalProperties: false`）**
+**3. `review_verdict.yaml`（双向天平微压测，`additionalProperties: false`）**
 
 ```yaml
-schema_version: "review_verdict/v1"
-round: 1                                # 硬上限: 2
-target_artifact: "MASTER_GDD.md@v0.2"
+schema_version: "review_verdict/v1.2"
+round: 1                                # 每微单元硬上限: 2
+target_unit: "GDD-M02@v0.2"             # 骨架 SKELETON 或具体单个系统 GDD-Mxx
+focus_tier: "ANCHOR"                    # ANCHOR(可判 FLAT_DESIGN) | FLOW/UTILITY(可判 OVER_DESIGNED)
 decision: "REJECT"                      # 枚举: PASS | REJECT
 blockers:                               # decision==PASS 时必须为空数组 []
   - blocker_id: "BLK-01"
-    category: "MISSING_BOUNDARY"        # 仅限4类: LOGIC_CONTRADICTION | MISSING_BOUNDARY | RULE_OR_CANON_VIOLATION | SCOPE_OVERFLOW
+    category: "MISSING_BOUNDARY"        # 枚举: LOGIC_CONTRADICTION | MISSING_BOUNDARY | RULE_OR_CANON_VIOLATION | SCOPE_OVERFLOW | FLAT_DESIGN(仅ANCHOR) | OVER_DESIGNED(仅FLOW/UTILITY)
     rubric_ref: "R07"
     location: "GDD-M02 朝议质询循环"
     objective_defect: "未定义当疑心值达到 100% 且玩家恰好处于宵禁过渡帧时的结算优先级。"
     required_fix_scope: "补充状态触发先后顺序与异常兜底结果，禁止新增额外子系统。"
+golden_sparks:                          # 略超体量但极惊艳的高光提案 -> 置顶写入 ideas_backlog.md，仅人类可破格采纳
+  - title: "偏殿知情老宫女的秘密交易"
+    spark: "老宫女识破身份后不告发，但要求玩家替她毁掉一份陈年档案"
+    cost_delta: "+1 次要 NPC 差分立绘 + 1 条支线抉择"
 backlog_notes:                          # $0 代码物理剥离写入 memory/ideas_backlog.md，绝不回传 Creator！
   - "未来 DLC 可考虑追加一个市井说书人旁观视角彩蛋。"
 ```

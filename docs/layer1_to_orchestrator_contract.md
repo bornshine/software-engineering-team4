@@ -1,11 +1,11 @@
-# 第一层（讨论层）→ 第二层（编排器）固定输出契约（v1.1 向后兼容）
+# 第一层（讨论层）→ 第二层（编排器）固定输出契约（v1.2 向后兼容）
 
 > [!IMPORTANT]
 > **给第二层编排器开发者的 TL;DR**：
-> 第一层（讨论层）的最终输出接口已彻底固定并锁定（**v1.1 为纯向后兼容增量升级**，在 v1.0 全部必填字段之上追加 `tree_path`、`explicit_na_refs`、`understanding_echo` 与 `system_interaction_matrix`，旧解析器零破坏）：
+> 第一层（讨论层）的最终输出接口已彻底固定并锁定（**v1.2 为纯向后兼容增量升级**，在 v1.0/v1.1 全部必填字段之上仅新增模块 `focus_tier` 焦点配额与 `pacing_flow_audit` 标记，旧解析器零破坏）：
 > **`1 份 manifest.json` + `1 份 MASTER_GDD.md（附机器可读 gdd_index.yaml）` + `4 张工种纯需求表（叙事 / 美术 / 音频 / 程序系统）` + `外部长期记忆与不可变 ADR`**。
 >
-> 编排器**只需消费这份冻结交接包**，与讨论层内部的抽卡熔炉、双主干树拆解、底层模型厂商和原生 CLI **100% 物理彻底解耦**。
+> 编排器**只需消费这份冻结交接包**，与讨论层内部的多支柱抽卡熔炉、骨架与逐系统微压测、双主干树拆解、底层模型厂商和原生 CLI **100% 物理彻底解耦**。
 
 ---
 
@@ -49,7 +49,7 @@ handoff/<project_id>/<spec_version>/
 
 | 字段 | 类型 | 必填 | 说明 |
 | :--- | :--- | :---: | :--- |
-| `contract_version` | `string` | ✅ | 契约协议版本，当前为 `"layer1-handoff/v1.1"`（100% 向后兼容 `v1.0` 必填字段） |
+| `contract_version` | `string` | ✅ | 契约协议版本，当前为 `"layer1-handoff/v1.2"`（100% 向后兼容 `v1.0/v1.1` 必填字段） |
 | `project_id` | `string` | ✅ | 项目唯一标识（kebab-case） |
 | `spec_version` | `string` | ✅ | 语义化版本号（如 `"v1.0.0"`，Delta RFC 递增为 `"v1.1.0"`） |
 | `parent_version` | `string \| null` | ✅ | 上一冻结版本号；首版为 `null` |
@@ -64,7 +64,7 @@ handoff/<project_id>/<spec_version>/
 
 ```json
 {
-  "contract_version": "layer1-handoff/v1.1",
+  "contract_version": "layer1-handoff/v1.2",
   "project_id": "xiyou-nverguo",
   "spec_version": "v1.0.0",
   "parent_version": null,
@@ -76,7 +76,7 @@ handoff/<project_id>/<spec_version>/
     "status": "APPROVED",
     "approved_by": "human_director",
     "approved_at": "2026-11-27T14:00:00Z",
-    "note": "七日朝议问心局基调清晰，四工种反向复述一致，体量可控，准予交付编排层。"
+    "note": "七日朝议问心局基调清晰，心流/信息量体检通过，四工种反向复述一致，准予交付编排层。"
   },
   "interceptors_passed": {
     "linked_gdd_ref_integrity": true,
@@ -84,6 +84,7 @@ handoff/<project_id>/<spec_version>/
     "system_no_how_blacklist_clean": true,
     "cross_table_state_event_closed": true,
     "no_placeholder_words_clean": true,
+    "pacing_and_cognitive_load_audit": true,
     "understanding_echo_aligned": true,
     "feasibility_cold_reader_audit": true
   },
@@ -142,16 +143,20 @@ handoff/<project_id>/<spec_version>/
 `MASTER_GDD.md` 面向阅读者完整陈述核心循环、博弈规则与边界条件；`gdd_index.yaml` 将其结构化为确定性的模块 ID 集合（`GDD-M01`, `GDD-M02`, ...），供编排器建图和三道拦截器核验 `linked_gdd_ref`。
 
 ```yaml
-schema_version: "gdd_index/v1.1"
+schema_version: "gdd_index/v1.2"
 source_document: "MASTER_GDD.md"
 rubric_coverage_map:                     # $0 脚本强制校验考纲 R01~R18 覆盖率 == 100%
   R01: "GDD-M01"
   R07: "GDD-M02"
+pacing_summary:                          # 全局心流与信息量体检记录
+  first_5min_new_concepts: 2             # 红线 <= 3，超标强制改为阶梯渐进解锁
+  anchor_module_count: 1                 # 全章高光记忆位严格限 1~2 个，防止处处抖机灵毁心流
 modules:
   - gdd_id: "GDD-M01"
     title: "子母河因果印记与体征隐瞒机制"
     pillar_origin: "narrative"
     priority: "P0"
+    focus_tier: "FLOW"                   # 枚举: ANCHOR(高光位,限1~2) | FLOW(心流承重位) | UTILITY(零感基建)
     anchor_heading: "## 2.1 子母河因果印记与体征隐瞒"
     entry_trigger: "渡口剧情误饮子母河水触发 EVT_DRINK_RIVER_WATER"
     core_rules: "3阶段离散因果印记；每次隐瞒升1档，宵禁验真落胎泉清零锁定"
@@ -163,6 +168,7 @@ modules:
     title: "七日朝议质询与朱砂呈词循环"
     pillar_origin: "gameplay"
     priority: "P0"
+    focus_tier: "ANCHOR"                 # 本章唯一高光记忆位：允许零膨胀微巧思（如高疑心落印手抖晕墨）
     anchor_heading: "## 2.2 七日朝议质询与朱砂呈词"
     entry_trigger: "每日昼间进入大殿朝议"
     core_rules: "昼间呈递证物盖印增减疑心值(0..100)，夜间宵禁搜证筹措"
@@ -475,12 +481,16 @@ rationale: "依据 lead_pillars[0]=narrative 核心抉择主权，玩家冒宵�
 impacted_refs: ["GDD-M01", "SYS-001"]
 ```
 
-**`memory/ideas_backlog.md`**（只读旁路灵感，编排器**绝不**将其转为可执行任务）：
+**`memory/ideas_backlog.md`**（只读旁路灵感与高光提案，编排器**绝不**自动将其转为可执行任务）：
 
 ```markdown
-# 旁路灵感备忘（Ideas Backlog · 严禁自动排期）
-> 本文件仅存放讨论层物理剥离的非 BLOCKER 灵感片段，仅供人类导演在未来新章节/DLC 评审时查阅。
+# 旁路灵感与高光提案（Ideas Backlog & Golden Sparks · 严禁自动排期）
+> 普通灵感仅作未来 DLC 备忘；置顶的 [GOLDEN_SPARK] 为填肉过程中冒出的超体量高光提案（附体量代价），仅在人类导演破格采纳并正式并入总策划案后才生效。
 
+## [GOLDEN_SPARK] 置顶高光提案（需人类导演显式破格拍板）
+- [Stage 2 / SYS-002] 偏殿药房增加「知情老宫女的秘密交易」分支（代价：+1 次要 NPC 立绘差分与 1 条分支结局）。
+
+## 普通旁路备忘
 - [Stage 2 / Round 1] 未来 DLC 可考虑追加一个市井说书人旁观视角彩蛋，串联前朝旧闻。
 ```
 
