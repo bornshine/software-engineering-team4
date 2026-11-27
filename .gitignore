@@ -20,12 +20,15 @@ env/
 .env.*
 !.env.example
 
-# 编辑器 / 系统
+# 编辑器 / 系统 / 临时文件
 .vscode/
 .idea/
 .DS_Store
+Thumbs.db
+desktop.ini
 *.swp
+*.tmp
+*.bak
 
 # 运行期沙箱 Git
 .sandbox_git/
-
