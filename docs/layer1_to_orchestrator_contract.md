@@ -1,11 +1,11 @@
-# 第一层（讨论层）→ 第二层（编排器）固定输出契约
+# 第一层（讨论层）→ 第二层（编排器）固定输出契约（v1.1 向后兼容）
 
 > [!IMPORTANT]
 > **给第二层编排器开发者的 TL;DR**：
-> 第一层（讨论层）的最终输出接口已彻底固定并锁定：
+> 第一层（讨论层）的最终输出接口已彻底固定并锁定（**v1.1 为纯向后兼容增量升级**，在 v1.0 全部必填字段之上追加 `tree_path`、`explicit_na_refs`、`understanding_echo` 与 `system_interaction_matrix`，旧解析器零破坏）：
 > **`1 份 manifest.json` + `1 份 MASTER_GDD.md（附机器可读 gdd_index.yaml）` + `4 张工种纯需求表（叙事 / 美术 / 音频 / 程序系统）` + `外部长期记忆与不可变 ADR`**。
 >
-> 编排器**只需消费这份冻结交接包**，与讨论层内部的抽卡熔炉、人类挑牌、红队压测、底层模型厂商和原生 CLI **100% 物理彻底解耦**。
+> 编排器**只需消费这份冻结交接包**，与讨论层内部的抽卡熔炉、双主干树拆解、底层模型厂商和原生 CLI **100% 物理彻底解耦**。
 
 ---
 
@@ -49,7 +49,7 @@ handoff/<project_id>/<spec_version>/
 
 | 字段 | 类型 | 必填 | 说明 |
 | :--- | :--- | :---: | :--- |
-| `contract_version` | `string` | ✅ | 契约协议版本，当前固定为 `"layer1-handoff/v1.0"` |
+| `contract_version` | `string` | ✅ | 契约协议版本，当前为 `"layer1-handoff/v1.1"`（100% 向后兼容 `v1.0` 必填字段） |
 | `project_id` | `string` | ✅ | 项目唯一标识（kebab-case） |
 | `spec_version` | `string` | ✅ | 语义化版本号（如 `"v1.0.0"`，Delta RFC 递增为 `"v1.1.0"`） |
 | `parent_version` | `string \| null` | ✅ | 上一冻结版本号；首版为 `null` |
@@ -64,7 +64,7 @@ handoff/<project_id>/<spec_version>/
 
 ```json
 {
-  "contract_version": "layer1-handoff/v1.0",
+  "contract_version": "layer1-handoff/v1.1",
   "project_id": "xiyou-nverguo",
   "spec_version": "v1.0.0",
   "parent_version": null,
@@ -76,12 +76,15 @@ handoff/<project_id>/<spec_version>/
     "status": "APPROVED",
     "approved_by": "human_director",
     "approved_at": "2026-11-27T14:00:00Z",
-    "note": "七日朝议问心局基调清晰，体量可控，准予交付编排层。"
+    "note": "七日朝议问心局基调清晰，四工种反向复述一致，体量可控，准予交付编排层。"
   },
   "interceptors_passed": {
     "linked_gdd_ref_integrity": true,
+    "gdd_bidirectional_na_closed": true,
     "system_no_how_blacklist_clean": true,
     "cross_table_state_event_closed": true,
+    "no_placeholder_words_clean": true,
+    "understanding_echo_aligned": true,
     "feasibility_cold_reader_audit": true
   },
   "files": [
@@ -139,21 +142,34 @@ handoff/<project_id>/<spec_version>/
 `MASTER_GDD.md` 面向阅读者完整陈述核心循环、博弈规则与边界条件；`gdd_index.yaml` 将其结构化为确定性的模块 ID 集合（`GDD-M01`, `GDD-M02`, ...），供编排器建图和三道拦截器核验 `linked_gdd_ref`。
 
 ```yaml
-schema_version: "gdd_index/v1"
+schema_version: "gdd_index/v1.1"
 source_document: "MASTER_GDD.md"
+rubric_coverage_map:                     # $0 脚本强制校验考纲 R01~R18 覆盖率 == 100%
+  R01: "GDD-M01"
+  R07: "GDD-M02"
 modules:
   - gdd_id: "GDD-M01"
     title: "子母河因果印记与体征隐瞒机制"
     pillar_origin: "narrative"
     priority: "P0"
     anchor_heading: "## 2.1 子母河因果印记与体征隐瞒"
-    summary: "玩家误饮子母河水后触发3阶段因果印记；每次在朝堂撒谎伪装虽可暂缓危机，但会推高因果印记阶段并扭曲次日宫廷仪轨。"
+    entry_trigger: "渡口剧情误饮子母河水触发 EVT_DRINK_RIVER_WATER"
+    core_rules: "3阶段离散因果印记；每次隐瞒升1档，宵禁验真落胎泉清零锁定"
+    win_exit: "七日内以真品落胎泉清零印记并保留博弈筹码"
+    fail_exit: "印记升至3阶满溢，次日开场强制进入暴露危机 EVT_DEBATE_EXPOSED"
+    experience_intent: "克制窒息的体征隐瞒心理拉扯（绝非打怪掉血或低俗猎奇笑料）"
+    acceptance_oracle: "任意状态下误饮+2次隐瞒精确抵达3阶且无溢出"
   - gdd_id: "GDD-M02"
     title: "七日朝议质询与朱砂呈词循环"
     pillar_origin: "gameplay"
     priority: "P0"
     anchor_heading: "## 2.2 七日朝议质询与朱砂呈词"
-    summary: "每日分为昼间呈词质询与夜间宵禁筹措两段；玩家在国主与太师两派间呈递证物、控制朝堂疑心值，并在第七日前破除因果印记或借势反制太师。"
+    entry_trigger: "每日昼间进入大殿朝议"
+    core_rules: "昼间呈递证物盖印增减疑心值(0..100)，夜间宵禁搜证筹措"
+    win_exit: "第7日昼间结束且疑心值<100进入终局分支判定"
+    fail_exit: "疑心值>=100当帧中止质询触发 EVT_DEBATE_EXPOSED"
+    experience_intent: "无声礼教凝视下的双向试探博弈（绝非拔刀追杀或跳吓恐怖片）"
+    acceptance_oracle: "疑心值严格钳位[0,100]，满100当帧触发暴露事件"
 ```
 
 ---
@@ -167,9 +183,15 @@ modules:
 * **下栏 `stage_deliverables`**：本阶段具体系统功能需求卡（含 `linked_gdd_ref`、输入、业务规则、异常边界、`exposed_state_ids`、`emitted_event_ids` 与客观 `acceptance_criteria`）。
 
 ```yaml
-schema_version: "system_requirements/v1"
+schema_version: "system_requirements/v1.1"
 discipline: "system"
 milestone_scope: "vertical_slice_act1"
+understanding_echo:                      # ≤150字大白话反向复述 + 2反例，1秒校验语义无偏移
+  summary: "本作是双轨状态博弈（因果印记0..3与朝堂疑心0..100）驱动的克制宫廷盘问循环，胜负取决于礼法试探与宵禁筹措。"
+  anti_examples:
+    - "绝不做成实时追逐战斗或视野锥拔刀追杀系统。"
+    - "绝不做成无脑刷数值升级或随机掉落装备系统。"
+explicit_na_refs: []                     # 本表覆盖全部 GDD 模块；若某模块无系统需求必须显式声明及理由
 
 global_constraints:
   non_functional_targets:
@@ -178,12 +200,22 @@ global_constraints:
     deterministic_save_load: true
     base_aspect_ratio: "16:9"
     min_supported_resolution: "1280x720"
+  shared_entity_dictionary:              # Root 共享实体词典，全树子节点严禁重造
+    - { entity_id: "ENT_HERO", name: "取经人代表" }
+    - { entity_id: "ENT_QUEEN", name: "女儿国主" }
+    - { entity_id: "ENT_PRECEPTOR", name: "太师" }
   architecture_boundaries:
     - "所有状态迁移与数值判定必须纯数据驱动且可脱离画面独立回放验证。"
     - "禁止依赖任何联网服务器或外部云端存档服务，纯单机离线运行。"
 
+system_interaction_matrix:               # 主干①收口必交：显式锁死跨系统并发冲突仲裁，消灭接缝打架
+  - pair: ["SYS-001", "SYS-002"]
+    concurrent_trigger: "同一结算帧内同时满足 EVT_BREAK_CURSE 与 EVT_DEBATE_EXPOSED"
+    resolution_rule: "强制优先结算 EVT_BREAK_CURSE，ST_WATER_CURSE_STAGE 归0锁定并取消当帧暴露结算（见 ADR-001）"
+
 stage_deliverables:
   - req_id: "SYS-001"
+    tree_path: "SYSTEMS/SYS-001"         # 双主干游戏树血缘路径（SYSTEMS/* 或 WORLD/<大场景>/<小场景>）
     title: "子母河因果印记状态机"
     linked_gdd_ref: "GDD-M01"
     priority: "P0"
@@ -213,6 +245,7 @@ stage_deliverables:
       - "同帧并发 EVT_BREAK_CURSE 与 EVT_DEBATE_EXPOSED 时，最终状态为 0 且不进入暴露结局。"
 
   - req_id: "SYS-002"
+    tree_path: "SYSTEMS/SYS-002"
     title: "七日朝议质询与疑心值结算系统"
     linked_gdd_ref: "GDD-M02"
     priority: "P0"
@@ -243,9 +276,15 @@ stage_deliverables:
 ### 4. `requirements/narrative_requirements.yaml`（叙事纯需求表）
 
 ```yaml
-schema_version: "narrative_requirements/v1"
+schema_version: "narrative_requirements/v1.1"
 discipline: "narrative"
 milestone_scope: "vertical_slice_act1"
+understanding_echo:
+  summary: "以克制古雅的宫廷礼法话术承载双向试探与清醒抉择，突出国主借势破局的冷静张力。"
+  anti_examples:
+    - "绝不写成低俗猎奇的婚恋闹剧。"
+    - "绝不写成冗长说教式的无交互纯电子小说。"
+explicit_na_refs: []
 
 global_constraints:
   core_theme: "体面礼法之下的双向试探与清醒抉择"
@@ -262,6 +301,7 @@ global_constraints:
 
 stage_deliverables:
   - req_id: "NAR-001"
+    tree_path: "WORLD/A_river_ferry/A1_drink_water"
     title: "初饮子母河水与三阶段异变心理独白组"
     linked_gdd_ref: "GDD-M01"
     priority: "P0"
@@ -274,6 +314,7 @@ stage_deliverables:
       - "覆盖 ST_WATER_CURSE_STAGE=1/2/3 与两个触发事件，无空文本分支。"
 
   - req_id: "NAR-002"
+    tree_path: "WORLD/B_royal_court/B1_morning_debate"
     title: "太师质询与疑心满溢暴露对峙剧本"
     linked_gdd_ref: "GDD-M02"
     priority: "P0"
@@ -290,9 +331,15 @@ stage_deliverables:
 ### 5. `requirements/art_requirements.yaml`（美术纯需求表）
 
 ```yaml
-schema_version: "art_requirements/v1"
+schema_version: "art_requirements/v1.1"
 discipline: "art"
 milestone_scope: "vertical_slice_act1"
+understanding_echo:
+  summary: "熟宣底色+焦墨留白+朱砂危机聚焦的2D工笔舞台视觉，靠神态差分与水墨纹样传达无声压迫。"
+  anti_examples:
+    - "绝不做写实3D渲染或高饱和荧光二次元光效。"
+    - "绝不做鬼屋流血跳吓式的恐怖片视觉。"
+explicit_na_refs: []
 
 global_constraints:
   visual_direction: "中小体量水墨工笔 2D 风格化（宣纸纹理底 + 简洁剪影分层 + 朱砂功能色聚焦）"
@@ -311,6 +358,7 @@ global_constraints:
 
 stage_deliverables:
   - req_id: "ART-001"
+    tree_path: "SYSTEMS/SYS-001"
     title: "因果印记四档水墨纹样与案台状态反馈套件"
     linked_gdd_ref: "GDD-M01"
     priority: "P0"
@@ -322,6 +370,7 @@ stage_deliverables:
       - "不遮挡核心对话字幕区与呈证交互热区。"
 
   - req_id: "ART-002"
+    tree_path: "WORLD/B_royal_court/B1_morning_debate"
     title: "太师与国主朝议立绘差分及疑心高危视觉警示"
     linked_gdd_ref: "GDD-M02"
     priority: "P0"
@@ -337,9 +386,15 @@ stage_deliverables:
 ### 6. `requirements/audio_requirements.yaml`（音频纯需求表）
 
 ```yaml
-schema_version: "audio_requirements/v1"
+schema_version: "audio_requirements/v1.1"
 discipline: "audio"
 milestone_scope: "vertical_slice_act1"
+understanding_echo:
+  summary: "极简古琴、箫与石磬水滴构成的克制留白声景，用低频水滴与骤停弦音烘托礼法窒息感。"
+  anti_examples:
+    - "绝不使用热血交响铜管或高速BOSS战密集鼓点。"
+    - "绝不使用现代电子合成器或恐怖片刺耳尖叫。"
+explicit_na_refs: []
 
 global_constraints:
   sonic_identity: "极简古琴、箫与木鱼/石磬点缀；克制留白，绝不堆砌交响史诗铜管"
@@ -352,6 +407,7 @@ global_constraints:
 
 stage_deliverables:
   - req_id: "AUD-001"
+    tree_path: "SYSTEMS/SYS-001"
     title: "子母河异变与破咒音效套件"
     linked_gdd_ref: "GDD-M01"
     priority: "P0"
@@ -362,6 +418,7 @@ stage_deliverables:
       - "EVT_DRINK_RIVER_WATER 与 EVT_BREAK_CURSE 触发反馈情绪反差鲜明，峰值不削波。"
 
   - req_id: "AUD-002"
+    tree_path: "WORLD/B_royal_court/B1_morning_debate"
     title: "朝堂疑心梯度配乐层与暴露惊堂音效"
     linked_gdd_ref: "GDD-M02"
     priority: "P0"
@@ -440,16 +497,17 @@ impacted_refs: ["GDD-M01", "SYS-001"]
 
 ---
 
-## 三、第一层向编排器提供的 6 条确定性契约保证
+## 三、第一层向编排器提供的 7 条确定性契约保证
 
-只要 `manifest.json` 校验通过且 `approval_signature.status == "APPROVED"`，第二层编排器即可 **100% 信任**以下 6 条由代码硬卡口保证的前提（无需在编排层重复防御性兜底）：
+只要 `manifest.json` 校验通过且 `approval_signature.status == "APPROVED"`，第二层编排器即可 **100% 信任**以下 7 条由代码硬卡口与语义复述保证的前提（无需在编排层重复防御性兜底）：
 
-1. **Schema 100% 严格合规**：全部 JSON/YAML 交付文件已通过严格 Schema 校验（`additionalProperties: false`），字段名、枚举值与数据类型完全确定，零解析意外；
+1. **Schema 100% 严格合规 + 零偷懒占位词**：全部 JSON/YAML 交付文件已通过严格 Schema 校验（`additionalProperties: false`），且已通过禁用词扫描（零 `TBD / 同上 / 略 / 待定`）；
 2. **零 3D 写实重资产越界**：`scope_tier` 严格限定在中小体量风格化 2D / 轻 2.5D 档位，`art_requirements.yaml` 与 `MASTER_GDD.md` 不包含任何 3A 写实管线或开放世界重资产需求；
 3. **零 How 实现污染**：`system_requirements.yaml` 已通过 Stage 3 实现词黑名单扫描，不包含任何引擎名、类名、节点树或代码实现指令，编排器可自由路由给任意下游技术栈/引擎执行器；
-4. **`linked_gdd_ref` 100% 有效闭合**：四张纯需求表的每一条 `stage_deliverables` 均精确指向 `gdd_index.yaml` 中已登记的 `GDD-Mxx`，零孤儿需求、零 Stage 3 偷加新玩法；
-5. **跨工种 `state_id / event_id` 全量对账闭合**：叙事/美术/音频表引用的每一个 `ST_*` / `EVT_*` 均已在 `system_requirements.yaml` 中权威声明，且无悬空死事件；
-6. **人类导演签字冻结 + 确定性哈希锁**：包级 `canonical_sha256` 与逐文件 `sha256` 完整可验证，天然支持编排器幂等消费、缓存命中与断点续跑。
+4. **`linked_gdd_ref` + `explicit_na_refs` 双向全覆盖闭合**：四张纯需求表每一条需求均有效溯源至 `gdd_index.yaml`，且各表均满足 `covered_gdd_ids ∪ explicit_na_ids == ALL_GDD_MODULE_IDS`（零孤儿需求、零静默漏项、零 Stage 3 偷加新玩法）；
+5. **跨工种 `state_id / event_id` 全量对账闭合 + 树形血缘 `tree_path`**：叙事/美术/音频表引用的每一个 `ST_*` / `EVT_*` 均已在 `system_requirements.yaml` 中权威声明，且 `system_interaction_matrix` 已锁死跨系统并发仲裁优先级；
+6. **全局风格锁 + 四工种 `understanding_echo` 语义对齐**：四张表均在统一冻结的 `Root` 全局风格宪法下经双主干树拆解，且四工种大白话反向复述已与 `MASTER_GDD` 体验意图交叉核验一致；
+7. **人类导演签字冻结 + 确定性哈希锁**：包级 `canonical_sha256` 与逐文件 `sha256` 完整可验证，天然支持编排器幂等消费、缓存命中与断点续跑。
 
 ---
 

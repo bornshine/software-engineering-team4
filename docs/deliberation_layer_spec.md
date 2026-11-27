@@ -1,9 +1,9 @@
-# 第一层：讨论层（Deliberation Plane）终版工程设计规范
+# 第一层：讨论层（Deliberation Plane）终版工程设计规范（v1.1）
 
 > [!IMPORTANT]
-> 本规范为 **2D / 轻 2.5D 风格化游戏多 Agent 工作流（v5.0 重构版）** 中 **第一层（讨论层）** 的终版工程规约。
+> 本规范为 **2D / 轻 2.5D 风格化游戏多 Agent 工作流（v5.0 重构版）** 中 **第一层（讨论层）** 的终版工程规约（**v1.1 强化版**，在 v1.0 固定契约基础上补齐了**策划案 5 槽位完整性校验**、**Stage 3 Root 全局风格锁 + 双主干游戏树增量拆解**与**反向复述语义防歪机制**，对编排器接口 100% 向后兼容）。
 >
-> 核心定位：**极薄定界围栏 · 领衔支柱按序抽卡熔炉 · 无吵架四工种纯需求拆解 · 跨阶段清空上下文 · 彻底取消“圣经”统一为纯需求表 · 只管 What 不教 How**。
+> 核心定位：**极薄定界围栏 · 领衔支柱按序抽卡熔炉 · Root 全局风格锁 + 双主干游戏树增量拆解 + Tree Reduce 归并四张纯需求表 · 跨阶段清空上下文 · 彻底取消“圣经”只管 What 不教 How**。
 >
 > 若你是第二层（编排器）开发者，请直接对接冻结接口文档：**[第一层 → 编排器固定输出契约（layer1_to_orchestrator_contract.md）](layer1_to_orchestrator_contract.md)**。
 
@@ -43,18 +43,17 @@ flowchart TD
     S2Pick["Stage 2 Step 3：人类导演必需挑牌（单选1张 或 1主+≤2副上限3张，不满一键 Reroll）"]
     S2Fusion["Stage 2 Step 4：AI 融合兼容性判官 fusion_check.yaml（强制逐对检验，任意一对怪异物理硬退回）"]
     S2Rubric["Stage 2 Step 5：抽牌定型后 Experience Critic 出 12~18 条精准考纲 R01~R18"]
-    S2Forge["Stage 2 Step 6A：Creator 锻造核心总策划案 MASTER_GDD.md（附模块索引 GDD-Mxx）"]
-    S2Stress["Stage 2 Step 6B：异构 Experience Critic 有限压测（≤2轮，仅4类客观硬伤开BLOCKER，代码剥离 backlog_notes）"]
+    S2Forge["Stage 2 Step 6A：Creator 锻造 MASTER_GDD.md（5槽位+体验意图/反例 + 100%考纲映射）"]
+    S2Stress["Stage 2 Step 6B：异构 Experience Critic 玩家单步旅程走查与有限压测（≤2轮，剥离 backlog_notes）"]
     S2Arbiter["Stage 2 Arbiter：2轮仍僵持时一次拍板写不可变 ADR（平时休眠 $0）"]
 
-    S3Nar["Stage 3 叙事需求专家：narrative_requirements.yaml"]
-    S3Art["Stage 3 美术需求专家：art_requirements.yaml（可选1~2张风格样图）"]
-    S3Aud["Stage 3 音频需求专家：audio_requirements.yaml"]
-    S3Sys["Stage 3 程序系统需求专家：system_requirements.yaml（零How纯What）"]
-    S3Scripts["Stage 3 三道 $0 确定性拦截器：linked_gdd_ref强溯源 + 程序实现词黑名单 + 四表 state_id/event_id 集合Diff对账"]
-    S3Feas["Stage 3 Feasibility Critic 单轮终审（零吵架）：陌生人可读性 + 体量总账 + Canon防吃书"]
+    S3Root["Stage 3.1 Root 根底座：四工种一次性锁死全局风格宪法 + 共享实体词典（Experience Critic 1次四方对齐）"]
+    S3Trunk1["Stage 3.2 主干① 核心系统子树（SYSTEMS/SYS-*）：先行落死 + 系统交互优先级矩阵"]
+    S3Trunk2["Stage 3.2 主干② 世界与场景递归树（WORLD/大场景/小场景）：继承父级只写增量 + needs按需开关闭合"]
+    S3Reduce["Stage 3.3 $0 Tree Reduce 自动归并四张纯需求表 + 四道确定性脚本拦截器（双向N/A+无How+ID闭合+禁偷懒词）"]
+    S3Audit["Stage 3.4 反向复述 understanding_echo 抓语义偏差 + Feasibility Critic 单轮终审（零吵架）"]
 
-    DirApprove["人类导演异步终审签字（附旁路 ideas_backlog.md 参考）"]
+    DirApprove["人类导演异步终审签字（首屏直看体验意图+四工种复述对照 + 旁路 ideas_backlog.md）"]
     FreezeBundle["冻结签发固定交接包交付第二层编排器：manifest.json + MASTER_GDD.md + 4张纯需求表 + ADR"]
     MemWrite["回写外部长期记忆层：增量更新 canon_registry.yaml + 沉淀验证有效的新通用词卡"]
 
@@ -62,7 +61,7 @@ flowchart TD
     ExtMem -.->|加载既有约束/Canon| S1Extract
     S1Extract --> S1Check
     S1Check -->|冻结围栏 清空上下文| S2Draw
-    S1Check -.->|derived_pillars 自动补集直通 Stage 3| S3Nar
+    S1Check -.->|derived_pillars 自动补集直通 Stage 3| S3Root
 
     ExtMem -.->|深水视角/词卡池| S2Draw
     S2Draw --> S2BatchCheck
@@ -76,18 +75,15 @@ flowchart TD
     S2Stress -->|仅传 BLOCKER ≤2轮| S2Forge
     S2Stress -->|2轮仍僵持| S2Arbiter
     S2Arbiter --> S2Forge
-    S2Stress -->|PASS 冻结 MASTER_GDD.md 清空上下文| S3Nar
-    S2Stress -->|PASS 冻结 MASTER_GDD.md 清空上下文| S3Art
-    S2Stress -->|PASS 冻结 MASTER_GDD.md 清空上下文| S3Aud
-    S2Stress -->|PASS 冻结 MASTER_GDD.md 清空上下文| S3Sys
+    S2Stress -->|PASS 冻结 MASTER_GDD.md 清空上下文| S3Root
 
-    S3Nar --> S3Scripts
-    S3Art --> S3Scripts
-    S3Aud --> S3Scripts
-    S3Sys --> S3Scripts
-    S3Scripts -->|三道硬卡口全过| S3Feas
-    ExtMem -.->|对照 Canon 防吃书| S3Feas
-    S3Feas -->|单轮终审绿灯| DirApprove
+    S3Root -->|冻结4份只读全局风格锁| S3Trunk1
+    S3Trunk1 -->|系统状态与优先级表已定| S3Trunk2
+    S3Trunk1 --> S3Reduce
+    S3Trunk2 --> S3Reduce
+    S3Reduce -->|四道脚本拦截全绿| S3Audit
+    ExtMem -.->|对照 Canon 防吃书| S3Audit
+    S3Audit -->|单轮终审绿灯| DirApprove
     DirApprove -.->|不满意定向打回| S2Pick
     DirApprove -->|签字批准| FreezeBundle
     FreezeBundle -.->|持久化归档| MemWrite
@@ -241,9 +237,12 @@ hard_box:
    * 只要**任意一对**出现核心节奏冲突、情绪气味割裂或体量乘法爆炸，代码立即判 **`INCOMPATIBLE` 并物理硬退回 Step 3 重挑**——**主创绝不启动，绝不允许 AI 硬着头皮强缝！**
 5. **Step 5 · 抽牌定型后才出精准考纲（`Experience Critic`）**
    * 创意形态完全落袋后，`Experience Critic` 针对 `stage1_boundary.yaml` + 选中融合卡，查询外部静态词卡库并现场动态推导 **12~18 条精准考纲（`R01~R18`）**，直指本作真实体验雷区与必答设计题。
-6. **Step 6 · 锻造《核心总策划案》与有限硬伤压测（≤ 2 轮，无强迫 DISPUTE 吵架）**
-   * `Creator` 在围栏 + 融合卡 + 考纲 `R01~R18` 约束下锻造 **`MASTER_GDD.md`**（同步生成带模块编号 `GDD-M01..Mxx` 的 `gdd_index.yaml`，只写 What 与规则闭环）；
-   * 异构 `Experience Critic` 输出 `review_verdict.yaml` 执行有限压测（硬上限 **2 轮**）：
+6. **Step 6 · 锻造《核心总策划案》与完整性强检 + 有限压测（≤ 2 轮，无强迫 DISPUTE 吵架）**
+   * `Creator` 在围栏 + 融合卡 + 考纲 `R01~R18` 约束下锻造 **`MASTER_GDD.md`** 与 **`gdd_index.yaml`**（只写 What 与规则闭环；**绝不越权替美术选具体色值或替音频调分贝**，保持轻策划案减负）：
+     * **单模块 5 槽位 + 体验意图硬约束**：`gdd_index.yaml` 中每个模块 `GDD-Mxx` 必须填满 `entry_trigger`（入口）、`core_rules`（核心规则）、`win_exit`（正向出口）、`fail_exit`（失败/异常出口）、`acceptance_oracle`（验收标尺）以及 20~40 字的 **`experience_intent`（体验意图 + 禁止反例，例如“无声礼教凝视压迫感，绝非拔刀追杀或跳吓”）**；
+     * **$0 完整性脚本拦截**：扫描全文禁用 `同上 / 略 / 待定 / TBD / TODO / 以此类推` 等偷懒占位词，并强制校验 `rubric_coverage_map`（`R01~R18 → GDD-Mxx` 覆盖率必须 = **100%**）；
+   * 异构 `Experience Critic` 输出 `review_verdict.yaml` 执行 **玩家单步旅程走查（Player Journey Walkthrough）** 与有限压测（硬上限 **2 轮**）：
+     * 强制按时间轴走查“启动 → 主循环 → 胜负结算 → 失败惩罚 → 中途退出重进”，凡出现断头路即标 `MISSING_BOUNDARY`；
      * 仅对 **4 类客观硬伤** 开 `BLOCKER`：① 规则/逻辑自相矛盾；② 漏写关键边界或使用未落地空话；③ 违背围栏/`Negative`/考纲必答项或与 `Canon` 吃书；④ 超出中小成本体量红线；
      * 无客观硬伤必须干脆签发 **`PASS`**（严禁凑数挑刺、严禁无休止 `DISPUTE` 吵架）；
      * 红队若顺带写了零星发散灵感（`backlog_notes`），**$0 代码将其物理剥离写入旁路 `ideas_backlog.md`**，绝不喂回 `Creator` 污染主线；
@@ -311,35 +310,55 @@ backlog_notes:                          # $0 代码物理剥离写入 memory/ide
 
 ---
 
-### Stage 3：无吵架 · 四工种顺流拆纯需求表 + 确定性防越界对表终审（全新干净上下文）
+### Stage 3：Root 全局风格锁 → 双主干游戏树增量拆解 → Tree Reduce 归并四张纯需求表（全新干净上下文）
 
-**核心原则**：
-* **彻底取消“圣经”概念！** 本阶段只产出 4 张结构化纯需求表；
-* **零吵架顺流拆解**：创意方向与核心玩法已在 Stage 2 彻底冻结，Stage 3 不再争论好不好玩，只做高精度、零歧义、零越界的工种需求映射；
-* **非领衔支柱顺流衍生**：Stage 1 中自动划入 `derived_pillars` 的支柱在此严格服务于 `MASTER_GDD.md` 顺流展开；
-* **统一双栏表结构**：4 张表全部遵循统一骨架——上栏 `global_constraints`（全局长期不变约束：色板/禁忌/叙事铁律/非功能硬指标）+ 下栏 `stage_deliverables`（本阶段/本章节交付清单、触发引用与客观验收标准）。
+**为什么升级为「Root 风格锁 + 双主干树」？**
+* 如果直接让 4 位专家对着一整部大策划案各自盲写 4 张庞大总表，容易长文偷懒漏项、各自理解跑偏；如果把 4 个人丢进自由群聊讨论，又会立刻触发 `O(N²)` 烧钱、AI 互相捧场加戏与集体歪楼。
+* 本阶段的工业解是：**先在 `Root` 一次性锁死四大工种的全局风格宪法与共享实体词典（保风格 100% 一致、防重复造资产），再按「双主干树」逐节点极小上下文精准拆增量，最后由 `$0` 脚本自动归并成 4 张固定纯需求表**。
 
-#### 1. 四工种并行产出
-* **`requirements/narrative_requirements.yaml`**（叙事需求表）：世界观铁律、人物/势力关系锚点、正反台词样张、剧情触发节点清单；
-* **`requirements/art_requirements.yaml`**（美术需求表）：风格化定位、主/辅/强调/UI 色板、图底分离与视觉禁忌、资产与复用组清单（**可选附 1~2 张外部生图参考样图**）；
-* **`requirements/audio_requirements.yaml`**（音频需求表）：情绪/配器基准、听觉层级与禁忌、BGM 状态切换与 SFX 触发清单；
-* **`requirements/system_requirements.yaml`**（程序系统需求表）：非功能硬指标、功能需求卡（输入/业务规则/异常边界/验收标准）及权威声明的 **`exposed_state_ids` / `emitted_event_ids`**（100% 纯 What，零引擎/代码绑定）。
+#### Step 3.1：`Root` 根底座锁定（如何保证美术 / 音乐 / 叙事 / 系统风格全树一致）
+在展开任何树节点前，四位工种专家并行各产出 **~250 字的不可违背全局风格宪法** + **共享实体词典**：
+1. **`art_global_lock`**：固定主/辅/强调色板（精确 Hex）、2D/轻 2.5D 尺度与镜头基准、视觉禁止红线、可选 1~2 张定调样图；
+2. **`audio_global_lock`**：固定乐器编制与音色族、调式情绪基准、统一 3 层动态切轨模型（底噪/常态/警戒）、听觉禁止红线；
+3. **`narrative_global_lock`**：世界底层铁律、5 句对的台词样张 + 5 句绝对禁止的错台词样张、`Canon Registry` 绑定；
+4. **`system_global_lock` + 共享实体词典**：统一命名空间（`ENT_*` / `ST_*` / `EVT_*`）、交互语法与非功能硬底线（60Hz/分辨率/存档）+ 全游戏唯一共享主角、通用 NPC 池与通用 UI 池（**子节点严禁重造！**）。
+* **1 次四方风格对齐**：`Experience Critic` 一次性审阅这 4 份加起来约 1000 字的全局锁，拦截“美术极简静谧水墨 vs 音频热血重鼓”等跨工种打架。通过后**永久冻结为全树只读前缀**，后续子节点严禁私自篡改风格！
+* *(说明：具体引擎的代码命名与目录规范属于下游实现层的 `CODING_CONVENTIONS.md`，同样采用“先锁后写”原理，不在讨论层越界规定。)*
 
-#### 2. 三道 $0 确定性脚本拦截器（代码硬卡口，任意未过即打回对应单表重出）
-1. **`linked_gdd_ref` 强溯源校验**：四张纯需求表中的每一条 `stage_deliverables` 条目必须携带有效的 `linked_gdd_ref`（精确命中 `gdd_index.yaml` 中的 `GDD-Mxx`），彻底封死 Stage 3 专家借拆表之名偷加新玩法；
-2. **程序表实现词黑名单扫描**：对 `system_requirements.yaml` 执行确定性词表/正则扫描，凡出现引擎专有名词、类/组件实现、脚本/路径指导（如 `Godot`、`Unity`、`Unreal`、`GDScript`、`C#`、`MonoBehaviour`、`CharacterBody2D`、`SceneTree`、`.gd`、`.cs`、`Prefab`、`ShaderGraph`、`React` 等）立即零容忍阻断；
-3. **四表统一 `state_id / event_id` 集合 Diff 对账**：提取 `system_requirements.yaml` 声明的全量 `ST_*` / `EVT_*` 集合，与叙事/美术/音频三表引用的 `linked_state_ids` / `trigger_event_ids` 做精确集合 Diff——任何悬空引用（消费了系统未声明的状态/事件）或孤立死事件（系统声称触发表现却无任何下游表承接）当场报错阻断，确保跨工种契约 100% 闭合。
+#### Step 3.2：双主干游戏树增量拆解（大场景 → 小场景继承 + 系统交互优先级封死接缝）
 
-#### 3. `Feasibility Critic` 单轮终审（零吵架）
-三道脚本全绿后，进入全新会话执行单轮终审：
-1. **陌生人可读性测试（Cold-Reader Check）**：以零背景工程师/画师视角核对每条需求是否存在形容词空话或遗漏边界条件；
-2. **中小成本体量总账与复用核查**：汇总资产总数、动画帧档与系统复杂度，确保在 `scope_tier` 预算内；
-3. **外部 `Canon Registry` 防吃书审计**：对照既有长期真相账本拦截设定自相矛盾与数值通胀。
+```text
+Root：四大全局风格锁 + 共享实体词典（全树只读，禁改风格、禁重造主角）
+├── 主干 ①：核心系统子树（SYSTEMS/SYS-* · 横切全游戏的玩法与基础能力，先行落死！）
+│    ├── SYS-01..SYS-N（按节点声明 needs: [system, narrative, art, audio]）
+│    └── 收口必交 1 张《系统交互优先级矩阵》→ 明确跨系统同帧/并发触发仲裁，彻底封死接缝打架！
+└── 主干 ②：世界与场景递归树（WORLD/<大场景>/<小场景> · 仅引用主干①系统，只写增量！）
+     ├── 大场景父节点（定义区域公共美术套件 / 区域公共 NPC 池 / 区域主 BGM 轨）
+     └── 小场景叶子节点（自动继承 Root + 主干① + 父节点，只填独有增量 + 按需勾选 needs）
+```
 
-#### 4. 人类导演异步终审签字与冻结回写
-终审全绿后，打包提交**人类导演异步终审签字**（同步附上被剥离的旁路 `memory/ideas_backlog.md` 供顺眼阅览）。导演签字后：
+* **单节点内部 AI 协作协议（极简两拍流水线 · 严禁 4 人自由群聊）**：
+  * **第 1 拍（按依赖出增量）**：上下文仅含 `Root 只读锁 + 父节点继承表 + 本节点概要`（<2000 字，杜绝长文偷懒）。若 `needs` 含 `system`，`System Analyst` 先拆出本节点精确的 `ST_* / EVT_*`；紧接着本节点 `needs` 中勾选的 `narrative / art / audio`（**未勾选工种直接跳过 $0！**）读着刚拆出的状态表与全局风格锁**并行填增量**；
+  * **第 2 拍（按需 1 轮受控定向质询卡，无问题 0 讨论直通）**：先过节点级 `$0` 脚本检查；仅当脚本报错，或某工种显式提交 **0~3 条定向质询卡**（每条 ≤60 字，Schema 物理限定只准问**澄清节奏 / 砍冗余合并 / 报漏项**，严禁提任何功能加法）时，被点名工种定向答复 1 轮即止！
+
+#### Step 3.3：`$0` `Tree Reduce` 自动归并 + 四道确定性脚本拦截器
+整棵树冻结后，`$0` Python 脚本深度优先遍历整棵树，将 `Root` 风格锁写入 4 张纯需求表上栏 `global_constraints`，将各节点增量自动归并进下栏 `stage_deliverables`（每条自动附带 `tree_path` 血缘路径，如 `SYSTEMS/SYS-01`、`WORLD/A_court/A1_morning_hall`），随后过四道零容忍硬卡口：
+1. **`linked_gdd_ref` 强溯源 + 双向显式 `explicit_na_refs` 校验**：不仅要求每条需求命中有效 `GDD-Mxx`（禁偷加新玩法），还强制要求四张表各自满足 `covered_gdd_ids ∪ explicit_na_ids == ALL_GDD_MODULE_IDS`（任何未产出需求的模块必须显式声明 N/A 及理由，**彻底消灭静默漏项**）；
+2. **程序表实现词黑名单扫描**：对 `system_requirements.yaml` 执行确定性词表/正则扫描，拦截 `Godot / Unity / Unreal / GDScript / C# / MonoBehaviour / CharacterBody2D / SceneTree / .gd / .cs / Prefab / ShaderGraph / React` 等一切 How 细节；
+3. **四表统一 `state_id / event_id` 集合 Diff 对账**：`system_requirements.yaml` 权威声明全量 `ST_* / EVT_*` 及消费需求标记，与叙事/美术/音频三表做精确集合差集，零悬空引用、零孤立死事件；
+4. **偷懒词与共享实体防重造校验**：禁现 `TBD / 同上 / 略 / 待定`，拦截子节点私自重造 `Root` 共享实体。
+
+#### Step 3.4：反向复述语义防歪 + `Feasibility Critic` 单轮终审（零吵架）
+四道脚本全绿后，进入全新会话执行单轮终审：
+1. **四工种 `understanding_echo` 反向复述核验（1 秒抓语义理解偏差）**：四张表顶部各填 ≤150 字大白话复述（*“我理解这游戏实际玩起来的氛围感受是什么，以及我绝不会把它做成哪 2 种样子”*），`Experience Critic` 将 4 份加起来不到 600 字的复述与 `MASTER_GDD` 体验意图并排比对，精准打回理解跑偏的单工种；
+2. **陌生人可读性测试（Cold-Reader Check）** + 抽查 `explicit_na_refs` 防偷懒滥填；
+3. **中小成本体量总账复核** + 检查主干 ①《系统交互优先级矩阵》完整度；
+4. **外部 `Canon Registry` 防吃书审计**。
+
+#### Step 3.5：人类导演异步终审签字与冻结回写
+终审全绿后，首屏直出 **「核心体验意图 + 四工种 `understanding_echo` 并排对照」** 与旁路 `memory/ideas_backlog.md` 供人类导演快速把关签字。签字后：
 * 代码生成带 `canonical_sha256` 与文件级哈希的固定交接包（详见 [layer1_to_orchestrator_contract.md](layer1_to_orchestrator_contract.md)），正式交付第二层编排器；
-* 自动回写外部长期记忆层（增量更新 `canon_registry.yaml`，并将验证有效的新通用玩法/风格词卡沉淀入静态词卡库）。
+* 自动回写外部长期记忆层（增量更新 `canon_registry.yaml`，并将验证有效的新通用词卡沉淀入静态词卡库）。
 
 ---
 
