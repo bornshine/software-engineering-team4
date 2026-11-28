@@ -1,0 +1,73 @@
+{
+  "contract_version": "layer1-handoff/v1.0",
+  "project_id": "xiyou-nverguo",
+  "spec_version": "v1.0.0",
+  "parent_version": null,
+  "canonical_sha256": "5fc62fed3974d7e7de3c29b802c5ca8c6d31b21af66162cff4a6993909417c7b",
+  "scope_tier": "indie_stylized_2d",
+  "lead_pillars": [
+    "narrative",
+    "gameplay"
+  ],
+  "derived_pillars": [
+    "art",
+    "audio"
+  ],
+  "approval_signature": {
+    "status": "APPROVED",
+    "approved_by": "human_director",
+    "approved_at": "2026-11-27T14:00:00Z",
+    "note": "七日朝议问心局基调清晰，体量可控，准予交付编排层。"
+  },
+  "interceptors_passed": {
+    "linked_gdd_ref_integrity": true,
+    "system_no_how_blacklist_clean": true,
+    "cross_table_state_event_closed": true,
+    "feasibility_cold_reader_audit": true
+  },
+  "files": [
+    {
+      "path": "MASTER_GDD.md",
+      "role": "master_gdd",
+      "sha256": "65183a8711e465d85447e2409176d9b9f627206dd7d24ed2b500fbe79bbbc97d",
+      "item_count": 2
+    },
+    {
+      "path": "gdd_index.yaml",
+      "role": "gdd_index",
+      "sha256": "bb897bbeeb86c90d4da2bd443ae7e3856a918dd18c02c9e2f83575c80051ddb1",
+      "item_count": 2
+    },
+    {
+      "path": "requirements/narrative_requirements.yaml",
+      "role": "narrative_requirements",
+      "sha256": "401cb5b82a9b792de96052c89af38e6a4656f33eab52ba6dc0cd6ad318dc12d7",
+      "item_count": 2
+    },
+    {
+      "path": "requirements/art_requirements.yaml",
+      "role": "art_requirements",
+      "sha256": "089e92baccec83d08c0f672f7132bc2c880576ddad6594131f1e5b2eed2179a3",
+      "item_count": 2
+    },
+    {
+      "path": "requirements/audio_requirements.yaml",
+      "role": "audio_requirements",
+      "sha256": "6dc56ce65e38c699eee1ea106b35d6f8563019eb45d51bd191d1b56be761e98b",
+      "item_count": 2
+    },
+    {
+      "path": "requirements/system_requirements.yaml",
+      "role": "system_requirements",
+      "sha256": "67a277bdfdf32c0f5df78fe088bf11efb5a68e2ca15ce9453bc5fbdb432b9797",
+      "item_count": 2
+    },
+    {
+      "path": "memory/canon_registry.yaml",
+      "role": "canon_registry",
+      "sha256": "057d29d71470fbb938d9471719e92727fd8a8c664f02eb2371186b92f18e4b2b",
+      "item_count": 4
+    }
+  ],
+  "diff_summary_ref": null
+}

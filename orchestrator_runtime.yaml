@@ -1,0 +1,84 @@
+handoff_root: "handoff/"
+state_root: ".orchestrator/"
+workspace_root: "workspace/"
+
+ingest:
+  auxiliary_files: compat             # compat | strict (see §4.1 A-10)
+
+concurrency:                          # 每个工种同时运行的尝试数
+  ROLE_TECH_LEAD: 1
+  ROLE_SYS_DEV: 2
+  ROLE_NARRATIVE: 1
+  ROLE_ART_2D: 2
+  ROLE_AUDIO: 1
+  ROLE_QA_INTEG: 2                    # 场景编写与 L2 审阅共用
+
+workers:
+  ROLE_TECH_LEAD:
+    mode: cli
+    runtime: codex-cli
+    timeout_sec: 1800
+  ROLE_SYS_DEV:
+    mode: cli
+    runtime: codex-cli
+    timeout_sec: 1800
+  ROLE_NARRATIVE:
+    mode: api
+    model: "strong-writing"
+    timeout_sec: 300
+  ROLE_ART_2D:
+    mode: api
+    model: "strong-visual-spec"
+    asset_route: procedural
+    timeout_sec: 600
+  ROLE_AUDIO:
+    mode: api
+    model: "strong-audio-spec"
+    asset_route: procedural
+    timeout_sec: 600
+  ROLE_QA_INTEG:
+    mode: api
+    model: "heterogeneous-reasoning"
+    vision: true
+    timeout_sec: 600
+
+policy:
+  max_attempts: 3                     # 首次 + 2 次重试
+  human_spot_check: [AUD]             # 未配置视觉模型时自动加入 ART
+  oversized_task_hours: 16
+
+budget:
+  project_cost_cap: 50.0
+  project_call_cap: 2000
+  per_attempt_call_cap: 40
+  api_backoff:
+    max_retries: 3
+    base_sec: 2
+
+safety:
+  isolation: process                  # process | container
+  env_allowlist:
+    codex-cli: ["OPENAI_API_KEY"]
+    claude-cli: ["ANTHROPIC_API_KEY"]
+    gemini-cli: ["GEMINI_API_KEY"]
+  network_allowlist: []               # 仅在 container 或代理环境下强制
+  redact_patterns:
+    - "sk-[A-Za-z0-9_-]{16,}"
+    - "ghp_[A-Za-z0-9]{20,}"
+    - "AKIA[0-9A-Z]{16}"
+
+estimation:
+  mode: baseline                      # baseline | baseline_plus_agent
+  baseline_hours:
+    TECH: 6
+    SYS:  { P0: 6, P1: 4, P2: 2 }
+    NAR:  { P0: 4, P1: 3, P2: 2 }
+    ART:  { P0: 5, P1: 3, P2: 2 }
+    AUD:  { P0: 3, P1: 2, P2: 1 }
+    INTEG_per_child: 1
+    QA_FINAL: 4
+  agent_clamp: [0.5, 2.0]
+  rework_ratio: 0.5
+
+test_mode:
+  all_workers_mock: false             # 单测 / CI / --mock 演示设为 true

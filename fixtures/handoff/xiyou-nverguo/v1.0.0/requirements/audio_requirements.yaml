@@ -1,0 +1,33 @@
+schema_version: "audio_requirements/v1"
+discipline: "audio"
+milestone_scope: "vertical_slice_act1"
+
+global_constraints:
+  sonic_identity: "极简古琴、箫与木鱼/石磬点缀；克制留白，绝不堆砌交响史诗铜管"
+  loudness_hierarchy:
+    - "第一层（最清晰）：呈词盖印、暴露警报等交互反馈 SFX"
+    - "第二层：环境底噪（微弱流水/殿堂风声）与极简古琴 BGM"
+  audio_anti_rules:
+    - "严禁全程密集打击乐或现代电子合成器音色。"
+    - "严禁任何无触发事件的纯装饰长音频资产。"
+
+stage_deliverables:
+  - req_id: "AUD-001"
+    title: "子母河异变与破咒音效套件"
+    linked_gdd_ref: "GDD-M01"
+    priority: "P0"
+    linked_state_ids: ["ST_WATER_CURSE_STAGE"]
+    trigger_event_ids: ["EVT_DRINK_RIVER_WATER", "EVT_BREAK_CURSE"]
+    deliverable_spec: "提供初饮水声异响 SFX（1.2s）、印记每升一档的低频水滴余韵 SFX（复用变调 3 档）以及破咒清越石磬 SFX（2.0s）。"
+    acceptance_criteria:
+      - "EVT_DRINK_RIVER_WATER 与 EVT_BREAK_CURSE 触发反馈情绪反差鲜明，峰值不削波。"
+
+  - req_id: "AUD-002"
+    title: "朝堂疑心梯度配乐层与暴露惊堂音效"
+    linked_gdd_ref: "GDD-M02"
+    priority: "P0"
+    linked_state_ids: ["ST_COURT_SUSPICION"]
+    trigger_event_ids: ["EVT_DEBATE_EXPOSED"]
+    deliverable_spec: "提供 2 轨无缝循环古琴/箫 BGM（常态平静轨 + 疑心>=60 叠入紧绷弦音轨）及 EVT_DEBATE_EXPOSED 骤停重击 SFX。"
+    acceptance_criteria:
+      - "常态轨与紧绷轨同 BPM 可平滑淡入淡出，EVT_DEBATE_EXPOSED 触发时能在 150ms 内压低 BGM 突出惊堂警示。"
