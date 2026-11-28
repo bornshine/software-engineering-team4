@@ -1,0 +1,40 @@
+schema_version: "narrative_requirements/v1"
+discipline: "narrative"
+milestone_scope: "vertical_slice_act1"
+
+global_constraints:
+  core_theme: "体面礼法之下的双向试探与清醒抉择"
+  world_laws:
+    - "女儿国国主并非恋爱脑反派，而是借外来变数撬动太师旧礼法的冷静掌局者。"
+    - "严禁将女儿国降格为低俗猎奇笑料，全文本保持克制古雅的试探张力。"
+  tone_samples:
+    good_examples:
+      - speaker: "女儿国主"
+        line: "子母河水映的从来不是身孕，是过境之人不敢落笔的真话。"
+    forbidden_examples:
+      - line: "哈哈你个大男人怎么怀孕啦，快留下来当我的压寨夫君吧！"
+        reason: "违背克制博弈基调，滑向脸谱化低俗套路。"
+
+stage_deliverables:
+  - req_id: "NAR-001"
+    title: "初饮子母河水与三阶段异变心理独白组"
+    linked_gdd_ref: "GDD-M01"
+    priority: "P0"
+    linked_state_ids: ["ST_WATER_CURSE_STAGE"]
+    trigger_event_ids: ["EVT_DRINK_RIVER_WATER", "EVT_BREAK_CURSE"]
+    canon_refs: ["CANON-LOC-01", "CANON-RULE-01"]
+    deliverable_spec: "提供印记阶段 1/2/3 各 2 组短独白（每组 ≤60 字）及破咒后的 1 段收束对话（≤120 字），严格体现从侥幸隐瞒到直面抉择的语气递进。"
+    acceptance_criteria:
+      - "所有台词均符合全局克制古雅语调，无任何禁用样张风格词汇。"
+      - "覆盖 ST_WATER_CURSE_STAGE=1/2/3 与两个触发事件，无空文本分支。"
+
+  - req_id: "NAR-002"
+    title: "太师质询与疑心满溢暴露对峙剧本"
+    linked_gdd_ref: "GDD-M02"
+    priority: "P0"
+    linked_state_ids: ["ST_COURT_SUSPICION"]
+    trigger_event_ids: ["EVT_DEBATE_EXPOSED"]
+    canon_refs: ["CANON-CHAR-01", "CANON-CHAR-02"]
+    deliverable_spec: "编写 3 组高低疑心区间（0-39 / 40-79 / 80-99）的太师压迫追问分支，以及 EVT_DEBATE_EXPOSED 触发时的朝堂摊牌对峙演出文本。"
+    acceptance_criteria:
+      - "三个疑心区间语气梯度清晰可辨，且国主台词始终保持借势试探立场，不与 CANON-CHAR-01 吃书。"

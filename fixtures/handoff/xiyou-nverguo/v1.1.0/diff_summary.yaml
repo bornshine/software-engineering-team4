@@ -1,0 +1,21 @@
+schema_version: "diff_summary/v1"
+project_id: "xiyou-nverguo"
+from_version: "v1.0.0"
+to_version: "v1.1.0"
+change_request_id: "CR-20261127-01"
+delta_tier: "TIER_A_LOCAL_TUNING"
+global_constraints_changed: false
+changes:
+  added_ids: []
+  modified_ids:
+    - req_id: "SYS-002"
+      discipline: "system"
+      reason: "高疑心警示阈值由60调整为50"
+    - req_id: "AUD-002"
+      discipline: "audio"
+      reason: "紧绷弦音轨淡入阈值同步下调至50"
+    - req_id: "NAR-002"
+      discipline: "narrative"
+      reason: "中段追问疑心区间微调为40-49/50-79"
+  deprecated_ids: []
+  unchanged_ids: ["SYS-001", "NAR-001", "ART-001", "ART-002", "AUD-001"]

@@ -1,0 +1,69 @@
+schema_version: "system_requirements/v1"
+discipline: "system"
+milestone_scope: "vertical_slice_act1"
+
+global_constraints:
+  non_functional_targets:
+    target_frame_rate_hz: 60
+    input_to_feedback_max_ms: 80
+    deterministic_save_load: true
+    base_aspect_ratio: "16:9"
+    min_supported_resolution: "1280x720"
+  architecture_boundaries:
+    - "所有状态迁移与数值判定必须纯数据驱动且可脱离画面独立回放验证。"
+    - "禁止依赖任何联网服务器或外部云端存档服务，纯单机离线运行。"
+
+stage_deliverables:
+  - req_id: "SYS-001"
+    title: "子母河因果印记状态机"
+    linked_gdd_ref: "GDD-M01"
+    priority: "P0"
+    inputs:
+      - "玩家在朝议中选择「隐瞒/伪装」对话选项"
+      - "玩家在宵禁阶段使用「落胎泉试样」道具"
+    business_rules:
+      - "印记状态 ST_WATER_CURSE_STAGE 仅取离散整数 0（未染）、1（微澜）、2（显相）、3（满溢）。"
+      - "触发 EVT_DRINK_RIVER_WATER 后，ST_WATER_CURSE_STAGE 从 0 立即升至 1。"
+      - "每次选择伪装隐瞒且未被当场拆穿时，ST_WATER_CURSE_STAGE 递增 1（上限 3）。"
+      - "当 ST_WATER_CURSE_STAGE 达到 3 且进入次日朝议开场前，必须触发终局暴露事件 EVT_DEBATE_EXPOSED。"
+      - "在宵禁期成功核验真品落胎泉后触发 EVT_BREAK_CURSE，ST_WATER_CURSE_STAGE 立即归 0 并锁定不可再升。"
+    edge_cases:
+      - "若 ST_WATER_CURSE_STAGE 已为 3 时再次执行隐瞒动作，数值保持 3 不溢出，且立即转为触发 EVT_DEBATE_EXPOSED。"
+      - "若同一结算帧内同时满足 EVT_BREAK_CURSE 与 EVT_DEBATE_EXPOSED，强制优先结算 EVT_BREAK_CURSE。"
+    exposed_state_ids:
+      - id: "ST_WATER_CURSE_STAGE"
+        value_type: "enum_int(0..3)"
+        meaning: "子母河因果印记阶段：0未染 / 1微澜 / 2显相 / 3满溢"
+    emitted_event_ids:
+      - id: "EVT_DRINK_RIVER_WATER"
+        meaning: "角色误饮子母河水并初染印记"
+      - id: "EVT_BREAK_CURSE"
+        meaning: "成功以真品落胎泉破除因果印记"
+    acceptance_criteria:
+      - "给定初始态 0，连续输入误饮 + 2次隐瞒后 ST_WATER_CURSE_STAGE 精确等于 3。"
+      - "同帧并发 EVT_BREAK_CURSE 与 EVT_DEBATE_EXPOSED 时，最终状态为 0 且不进入暴露结局。"
+
+  - req_id: "SYS-002"
+    title: "七日朝议质询与疑心值结算系统"
+    linked_gdd_ref: "GDD-M02"
+    priority: "P0"
+    inputs:
+      - "玩家向案台呈递证物卡并盖下朱砂印确认"
+      - "昼夜阶段切换指令（第 1 日至第 7 日）"
+    business_rules:
+      - "朝堂疑心值 ST_COURT_SUSPICION 范围锁定为整数 0..100，初始值为 20。"
+      - "呈递与当前质询矛盾的伪证导致 ST_COURT_SUSPICION 增加 25；呈递指向太师破绽的实证减少 15。"
+      - "当 ST_COURT_SUSPICION >= 60 时触发高疑心警示；当 >= 100 时立即中止当日质询并触发 EVT_DEBATE_EXPOSED。"
+    edge_cases:
+      - "ST_COURT_SUSPICION 增减后必须截断在 [0, 100] 闭区间内。"
+      - "当第 7 日昼间质询结束且 ST_COURT_SUSPICION < 100 时，即使处于宵禁过渡点也不再触发常规递增，直接进入终局分支判定。"
+    exposed_state_ids:
+      - id: "ST_COURT_SUSPICION"
+        value_type: "int(0..100)"
+        meaning: "朝堂对取经人一行身份的实时疑心值"
+    emitted_event_ids:
+      - id: "EVT_DEBATE_EXPOSED"
+        meaning: "身份暴露或疑心值满溢触发的朝堂危机事件"
+    acceptance_criteria:
+      - "呈递实证使疑心值低于 0 时精确钳位为 0；达到或超过 100 时当帧触发 EVT_DEBATE_EXPOSED。"
+      - "存读档还原任意一日质询现场时，ST_COURT_SUSPICION 与已呈递证物集合 100% 一致。"

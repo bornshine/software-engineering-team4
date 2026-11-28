@@ -1,0 +1,40 @@
+schema_version: "art_requirements/v1"
+discipline: "art"
+milestone_scope: "vertical_slice_act1"
+
+global_constraints:
+  visual_direction: "中小体量水墨工笔 2D 风格化（宣纸纹理底 + 简洁剪影分层 + 朱砂功能色聚焦）"
+  camera_framing: "固定 2D 平面舞台剧透视，前景案台与中景立绘强图底分离"
+  color_palette:
+    primary_bg: "#F3EDE0"
+    ink_structural: "#1F2428"
+    accent_signal: "#B83227"
+    curse_tint: "#2E6F7E"
+  visual_anti_rules:
+    - "严禁写实 PBR 质感、3D 写实骨骼模型与高饱和霓虹光污染。"
+    - "严禁复杂逐帧长片过场动画，立绘情绪切换采用差分表情+轻度呼吸位移动效。"
+  style_reference_images:
+    - path: "references/style_ref_01.png"
+      usage: "仅锚定宣纸笔触、朱砂留白比例与朝堂人物比例基准"
+
+stage_deliverables:
+  - req_id: "ART-001"
+    title: "因果印记四档水墨纹样与案台状态反馈套件"
+    linked_gdd_ref: "GDD-M01"
+    priority: "P0"
+    linked_state_ids: ["ST_WATER_CURSE_STAGE"]
+    reuse_group: "UI_INK_SEAL_SET"
+    deliverable_spec: "提供对应 ST_WATER_CURSE_STAGE 0/1/2/3 四档的水墨水纹叠加徽记与边缘染墨滤镜规格（2D 矢量/精灵图，共享同一底框复用）。"
+    acceptance_criteria:
+      - "四档视觉差异在 1280x720 缩略尺度下 1 秒内肉眼可区分，且仅用规定石青/焦墨色板。"
+      - "不遮挡核心对话字幕区与呈证交互热区。"
+
+  - req_id: "ART-002"
+    title: "太师与国主朝议立绘差分及疑心高危视觉警示"
+    linked_gdd_ref: "GDD-M02"
+    priority: "P0"
+    linked_state_ids: ["ST_COURT_SUSPICION"]
+    reuse_group: "CHAR_PORTRAIT_DIFF"
+    deliverable_spec: "两位核心角色各 1 套基础工笔立绘 + 3 档神态差分（平静/试探/峻厉），配合高疑心区间（>=80）案台朱砂裂纹警示框。"
+    acceptance_criteria:
+      - "人物轮廓与背景明度差清晰，满足图底分离铁律；严格复用基础体块，不重画全身动态。"

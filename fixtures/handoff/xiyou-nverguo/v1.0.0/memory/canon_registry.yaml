@@ -1,0 +1,23 @@
+schema_version: "canon_registry/v1"
+project_id: "xiyou-nverguo"
+entries:
+  - canon_id: "CANON-CHAR-01"
+    category: "character"
+    name: "女儿国主"
+    immutable_facts:
+      - "深知外来取经人身份异常，但选择以朝堂礼法博弈试探而非直接羁押。"
+  - canon_id: "CANON-CHAR-02"
+    category: "character"
+    name: "太师"
+    immutable_facts:
+      - "旧礼法秩序维护者，对一切外来变量持高度审慎与排斥态度。"
+  - canon_id: "CANON-LOC-01"
+    category: "location"
+    name: "子母河"
+    immutable_facts:
+      - "河水在本作中兼具生理异变与心证显相双重象征，唯有真品落胎泉可逆转。"
+  - canon_id: "CANON-RULE-01"
+    category: "world_rule"
+    name: "因果印记不可隐藏原则"
+    immutable_facts:
+      - "因果印记阶段升至 3 阶满溢时必然触发朝堂显相，不存在永久白嫖隐瞒解法。"
